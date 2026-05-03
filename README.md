@@ -26,6 +26,48 @@ University, Institute of Theoretical Physics).
 5. **SMT Integration** — Constraint solving via EML tree interval narrowing
    (feature-gated for oxiz integration).
 
+6. **Gradient / Jacobian / Hessian** — Symbolic differentiation on `LoweredOp` with
+   `LoweredOp::grad(wrt)`, `grad_all()`, `jacobian(n)`, `hessian(n)`.
+
+7. **Extended Transcendentals** — `LoweredOp` has `Tan`, `Sinh`, `Cosh`, `Tanh`,
+   `Arcsin`, `Arccos`, `Arctan`, `Arcsinh`, `Arccosh`, `Arctanh` with canonical EML
+   shape recognition.
+
+8. **Interval Arithmetic** — `LoweredOp::eval_interval` for range analysis and
+   symreg pruning.
+
+9. **JIT Compilation** — Cranelift-based JIT for hot evaluation paths (feature: `jit`).
+
+10. **ODE Discovery** — SINDy-style ODE/PDE discovery from trajectory data
+    (`SymRegEngine::discover_ode`).
+
+11. **Multi-output Symbolic Regression** — `SymRegEngine::discover_multi` for
+    vector-valued formulas.
+
+12. **Dimensional Analysis** — SI unit-aware regression with `Units` algebra; rejects
+    dimensionally-inconsistent formulas.
+
+13. **Python Bindings** — PyO3-based Python bindings via maturin (feature: `python`).
+
+14. **WASM Bindings** — wasm-bindgen target with npm package `@cool-japan/oxieml`
+    (feature: `wasm`).
+
+15. **Noise-Robust Loss** — Huber and TrimmedMSE loss functions (`SymRegLoss` enum).
+
+16. **Constants Extraction** — Post-Adam rounding of floats to π, e, simple rationals.
+
+17. **Beam Search** — `SymRegStrategy::Beam{width}` for depth > 4 topology exploration.
+
+18. **MCTS Search** — Monte Carlo Tree Search topology exploration (`symreg/mcts.rs`).
+
+19. **Serde Serialization** — JSON + oxicode binary for `EmlTree`/`LoweredOp`/
+    `DiscoveredFormula` (feature: `serde`).
+
+20. **TensorLogic Integration** — Bidirectional `LoweredOp ↔ TLExpr` mapping + soft-prior
+    export (feature: `tensorlogic`).
+
+21. **SciRS2 Integration** — ndarray adapter (feature: `scirs2`).
+
 ## CLI Tool
 
 The `oxieml` CLI can evaluate EML expressions, generate EML from function names,
@@ -184,6 +226,28 @@ oxieml = { version = "0.1", features = ["smt"] }
 The `IntervalDomain` type is always available (no feature) for lightweight
 propagation use-cases.
 
+## What's New in v0.1.1
+
+Released 2026-05-03.
+
+- Symbolic gradient, Jacobian, and Hessian on `LoweredOp`
+- Extended transcendentals in `LoweredOp` (`Tan`, `Sinh`, `Cosh`, `Tanh`, `Arcsin`,
+  `Arccos`, `Arctan`, `Arcsinh`, `Arccosh`, `Arctanh`)
+- Interval arithmetic on `LoweredOp` for domain analysis and symreg pruning
+- Noise-robust loss (`Huber`, `TrimmedMSE`) and constants extraction (π, e, rationals)
+- Beam search and MCTS topology strategies for depth > 4
+- ODE/PDE discovery via `SymRegEngine::discover_ode`
+- Multi-output symbolic regression via `SymRegEngine::discover_multi`
+- Dimensional analysis: SI unit-aware regression with hard pruning
+- JIT compilation (Cranelift, `jit` feature): 5–20× speedup on long batches
+- Serde serialization for all types (`serde` feature)
+- Python bindings (`python` feature, maturin-packaged)
+- WASM bindings (`wasm` feature, npm: `@cool-japan/oxieml`)
+- TensorLogic integration (`tensorlogic` feature): soft-prior export
+- SciRS2 integration (`scirs2` feature): ndarray adapters
+- Constraint-guided symreg pruning via `EmlSmtSolver` (UNSAT-prune topologies)
+- CLI: `--grad`/`-d`, `--symreg`/`-s`, `--format`, `--output`, `--strategy` flags
+
 ## Canonical Constructions (Complete Phylogenetic Tree)
 
 All functions from the paper's phylogenetic tree (Figure 1) are implemented:
@@ -277,30 +341,55 @@ S -> 1 | eml(S,S) -------> Add/Sub/Mul/Exp/Ln...
 
 ## Module Overview
 
-| Module        | Purpose                                           |
-|---------------|---------------------------------------------------|
-| `tree`        | `EmlNode`/`EmlTree` — Arc-shared uniform binary trees |
-| `eval`        | Stack-machine evaluation (real, complex, batch)   |
-| `grad`        | Automatic differentiation for parameter optimization |
-| `canonical`   | Complete phylogenetic tree: 30+ elementary functions |
-| `parser`      | Parse `E(x,y)` / `eml(x,y)` notation, roundtrip  |
-| `simplify`    | EML tree algebraic simplification + CSE            |
-| `lower`       | EML -> standard operation trees + pretty-print    |
-| `compile`     | EML -> Rust source code generation                |
-| `symreg`      | Symbolic regression engine (topology enum + Adam) |
-| `smt`         | [feature: smt] Constraint solving (interval propagation + OxiZ LRA via linear relaxation) |
-| `simd_eval`   | [feature: simd] SIMD batch evaluation via oxiblas-core |
-| `error`       | Error types                                       |
+| Module           | Purpose |
+|------------------|---------|
+| `tree`           | `EmlNode`/`EmlTree` — Arc-shared uniform binary trees |
+| `eval`           | Stack-machine evaluation (real, complex, batch) |
+| `grad`           | Automatic differentiation for parameter optimization |
+| `canonical`      | Complete phylogenetic tree: 30+ elementary functions |
+| `parser`         | Parse `E(x,y)` / `eml(x,y)` notation, roundtrip |
+| `simplify`       | EML tree algebraic simplification + CSE + constant folding |
+| `lower`          | EML → standard operation trees + pretty-print |
+| `lower_grad`     | Symbolic differentiation on `LoweredOp` (grad, Jacobian, Hessian) |
+| `lower_simplify` | Simplification rules on `LoweredOp` (constant folding, algebraic) |
+| `lower_interval` | Interval arithmetic on `LoweredOp` for range analysis |
+| `lower_units`    | SI unit inference and dimensional consistency checking |
+| `named_const`    | Named constant detection (π, e, √2, rationals) post-Adam |
+| `compile`        | EML → Rust source code generation (scalar, batch, closure) |
+| `symreg`         | Symbolic regression engine (topology enum + Adam + beam + MCTS) |
+| `symreg/topology`| Topology enumeration and semantic deduplication |
+| `symreg/mcts`    | Monte Carlo Tree Search topology exploration |
+| `symreg/numerics`| Adam optimizer, k-fold CV, noise-robust loss functions |
+| `symreg/constants`| Post-Adam constant extraction and rounding |
+| `smt`            | [feature: smt] Constraint solving (interval propagation + OxiZ LRA) |
+| `simd_eval`      | [feature: simd] SIMD batch evaluation via oxiblas-core |
+| `jit`            | [feature: jit] Cranelift JIT for OxiOp sequences |
+| `tensorlogic`    | [feature: tensorlogic] Bidirectional `LoweredOp ↔ TLExpr` |
+| `scirs2`         | [feature: scirs2] ndarray adapter for SciRS2 integration |
+| `python`         | [feature: python] PyO3 bindings for Python |
+| `wasm`           | [feature: wasm] wasm-bindgen bindings for browser/Node.js |
+| `units`          | SI unit algebra (7-exponent vector, `Units` struct) |
+| `solve`          | Symbolic equation solving |
+| `error`          | Error types |
 
 ## Features
 
 ```toml
-[features]
-default = []
-smt = ["dep:oxiz", "dep:num-rational"]   # OxiZ 0.2 backend + interval propagation
-simd = ["dep:oxiblas-core"]    # SIMD batch evaluation (F64x2/F64x4 via oxiblas-core 0.2)
-parallel = ["dep:rayon"]       # Rayon-based parallel discovery & batch eval
+[dependencies]
+oxieml = { version = "0.1", features = ["smt", "simd", "parallel"] }
 ```
+
+| Feature        | Description |
+|----------------|-------------|
+| `smt`          | OxiZ SMT backend + interval propagation + NRA solver |
+| `simd`         | SIMD batch evaluation via oxiblas-core (aarch64 + x86_64) |
+| `parallel`     | Rayon parallel batch evaluation |
+| `tensorlogic`  | Bidirectional `LoweredOp ↔ TLExpr` bridge |
+| `scirs2`       | ndarray `Array2`/`Array1` adapters for SciRS2 workflows |
+| `serde`        | JSON + oxicode binary serialization for all types |
+| `python`       | PyO3 Python bindings (use `python-extension` for `.so`) |
+| `wasm`         | wasm-bindgen WASM bindings for browser/Node.js |
+| `jit`          | Cranelift JIT compiler for hot OxiOp sequences |
 
 Combine `simd,parallel` for SIMD-per-worker batch evaluation.
 
@@ -341,18 +430,24 @@ scales near-linearly on large batches (100K+ points).
 
 ## Test Coverage
 
-173 tests covering:
-- All canonical constructions (Tables 1-7)
-- Evaluation: real, complex, batch, error cases
-- Parser: roundtrip, E/eml notation, error handling
-- Symbolic regression: exp, constant, linear discovery
-- Lowering + simplification: pattern matching, constant folding
-- SIMD/parallel equivalence (scalar vs SIMD vs rayon results match to 1e-12)
-- Integration: EML <-> lower <-> compile consistency
-- SMT/constraint solving: interval propagation, OxiZ backend SAT/UNSAT, witness verification
+434 tests covering:
+- Canonical tree construction (correctness, complex, symbolic)
+- Lowering, compilation, pretty-print, LaTeX
+- Symbolic gradient, Jacobian, Hessian (central-difference cross-checks)
+- Property-based gradient tests (proptest, 1024 cases)
+- Trig precision (sin/cos via canonical shapes, 0.0 vs ~1e-14 walk error)
+- Interval arithmetic containment and tightness
+- Serde round-trip (JSON + oxicode binary)
+- SIMD/parallel equivalence
+- SMT/constraint solving: interval propagation, OxiZ backend, SAT/UNSAT
+- Symbolic regression: Adam, Pareto, k-fold CV, beam, MCTS, multi-output, ODE
+- Unit-aware regression (dimensional analysis)
+- JIT compilation (scalar, vectorized, cache, hash stability)
+- TensorLogic bridge (to/from TLExpr, rewrite rules, soft-prior export)
+- CLI integration (eval, lower, grad, symreg, format, output flags)
 
 ```bash
-cargo nextest run --all-features    # 173 tests
+cargo nextest run --all-features    # 434 tests
 cargo clippy --all-targets --all-features -- -D warnings   # zero warnings
 cargo bench --features simd,parallel                       # criterion benchmarks
 ```

@@ -40,6 +40,15 @@ impl EvalCtx {
     pub fn num_vars(&self) -> usize {
         self.vars.len()
     }
+
+    /// Borrow the underlying variable slice.
+    ///
+    /// Exposed to let the stack-machine evaluator consume `&[f64]` directly
+    /// without re-copying via `get(i)` loops (which would force an `unwrap`
+    /// or `ok_or` ceremony on every lookup).
+    pub fn as_slice(&self) -> &[f64] {
+        &self.vars
+    }
 }
 
 impl EmlTree {
@@ -224,7 +233,7 @@ mod tests {
         // One evaluates... well, One is a leaf, not eml.
         // We need to handle the fact that One by itself is just the constant 1.
         // But eval_real goes through eval_complex which handles leaves.
-        let result = t.eval_real(&ctx).unwrap();
+        let result = t.eval_real(&ctx).expect("eval of One leaf should succeed");
         assert!((result - 1.0).abs() < 1e-15);
     }
 
@@ -232,7 +241,7 @@ mod tests {
     fn test_eval_var() {
         let t = EmlTree::var(0);
         let ctx = EvalCtx::new(&[2.71]);
-        let result = t.eval_real(&ctx).unwrap();
+        let result = t.eval_real(&ctx).expect("eval of Var leaf should succeed");
         assert!((result - 2.71).abs() < 1e-15);
     }
 
@@ -243,7 +252,9 @@ mod tests {
         let one = EmlTree::one();
         let exp_x = EmlTree::eml(&x, &one);
         let ctx = EvalCtx::new(&[1.0]);
-        let result = exp_x.eval_real(&ctx).unwrap();
+        let result = exp_x
+            .eval_real(&ctx)
+            .expect("eval of eml(x,1) = exp(x) should succeed");
         assert!((result - std::f64::consts::E).abs() < 1e-10);
     }
 
@@ -253,7 +264,9 @@ mod tests {
         let one = EmlTree::one();
         let euler = EmlTree::eml(&one, &one);
         let ctx = EvalCtx::new(&[]);
-        let result = euler.eval_real(&ctx).unwrap();
+        let result = euler
+            .eval_real(&ctx)
+            .expect("eval of eml(1,1) = e should succeed");
         assert!((result - std::f64::consts::E).abs() < 1e-10);
     }
 
@@ -263,7 +276,9 @@ mod tests {
         let one = EmlTree::one();
         let exp_x = EmlTree::eml(&x, &one);
         let data = vec![vec![0.0], vec![1.0], vec![2.0]];
-        let results = exp_x.eval_batch(&data).unwrap();
+        let results = exp_x
+            .eval_batch(&data)
+            .expect("batch eval of exp should succeed");
         assert!((results[0] - 1.0).abs() < 1e-10);
         assert!((results[1] - std::f64::consts::E).abs() < 1e-10);
         assert!((results[2] - (2.0_f64).exp()).abs() < 1e-10);
@@ -286,7 +301,9 @@ mod tests {
         let one = EmlTree::one();
         let exp_x = EmlTree::eml(&x, &one);
         let data: Vec<Vec<f64>> = (0..200).map(|i| vec![i as f64 * 0.01]).collect();
-        let results = exp_x.eval_batch(&data).unwrap();
+        let results = exp_x
+            .eval_batch(&data)
+            .expect("parallel batch eval should succeed");
         assert_eq!(results.len(), 200);
         for (i, &r) in results.iter().enumerate() {
             let expected = (i as f64 * 0.01_f64).exp();

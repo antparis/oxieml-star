@@ -191,6 +191,86 @@ where
                 }
                 stack.push(reg);
             }
+            OxiOp::Tan => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).tan());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Sinh => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).sinh());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Cosh => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).cosh());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Tanh => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).tanh());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Arcsin => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).asin());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Arccos => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).acos());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Arctan => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).atan());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Arcsinh => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).asinh());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Arccosh => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).acosh());
+                }
+                stack.push(reg);
+            }
+            OxiOp::Arctanh => {
+                let a = stack.pop().unwrap_or_else(V::zero);
+                let mut reg = V::zero();
+                for lane in 0..lanes {
+                    reg = reg.insert(lane, a.extract(lane).atanh());
+                }
+                stack.push(reg);
+            }
         }
     }
 

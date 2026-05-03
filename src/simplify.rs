@@ -256,9 +256,13 @@ mod tests {
         let ln_exp_x = Canonical::ln(&exp_x);
 
         let ctx = EvalCtx::new(&[2.5]);
-        let before = ln_exp_x.eval_real(&ctx).unwrap();
+        let before = ln_exp_x
+            .eval_real(&ctx)
+            .expect("ln(exp(x)) eval before simplify should succeed");
         let simplified = simplify(&ln_exp_x);
-        let after = simplified.eval_real(&ctx).unwrap();
+        let after = simplified
+            .eval_real(&ctx)
+            .expect("x eval after simplify should succeed");
         assert!((before - after).abs() < 1e-10);
     }
 

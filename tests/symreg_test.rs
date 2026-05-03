@@ -1,6 +1,6 @@
 //! Tests for symbolic regression.
 
-use oxieml::symreg::{SymRegConfig, SymRegEngine};
+use oxieml::symreg::{SymRegConfig, SymRegEngine, pareto_front};
 
 #[test]
 fn test_discover_exp() {
@@ -16,6 +16,8 @@ fn test_discover_exp() {
         complexity_penalty: 1e-4,
         num_restarts: 3,
         integer_rounding: true,
+        cv_folds: None,
+        ..SymRegConfig::default()
     };
 
     let engine = SymRegEngine::new(config);
@@ -41,6 +43,8 @@ fn test_discover_constant() {
         complexity_penalty: 1e-4,
         num_restarts: 3,
         integer_rounding: true,
+        cv_folds: None,
+        ..SymRegConfig::default()
     };
 
     let engine = SymRegEngine::new(config);
@@ -66,6 +70,8 @@ fn test_discover_linear() {
         complexity_penalty: 1e-4,
         num_restarts: 3,
         integer_rounding: true,
+        cv_folds: None,
+        ..SymRegConfig::default()
     };
 
     let engine = SymRegEngine::new(config);
@@ -90,4 +96,85 @@ fn test_formulas_sorted_by_score() {
     for window in formulas.windows(2) {
         assert!(window[0].score <= window[1].score);
     }
+}
+
+#[test]
+fn pareto_front_empty() {
+    let front = pareto_front(&[]);
+    assert!(front.is_empty());
+}
+
+#[test]
+fn pareto_front_from_discover() {
+    let inputs: Vec<Vec<f64>> = (0..20).map(|i| vec![(i as f64) * 0.1 + 0.1]).collect();
+    let targets: Vec<f64> = inputs.iter().map(|row| row[0] * 2.0).collect();
+    let config = SymRegConfig::quick();
+    let engine = SymRegEngine::new(config);
+    let all_formulas = engine.discover(&inputs, &targets, 1).expect("discover");
+    let front = pareto_front(&all_formulas);
+    // Pareto front is a subset
+    assert!(front.len() <= all_formulas.len());
+    // All front members are mutually non-dominating
+    for i in 0..front.len() {
+        for j in 0..front.len() {
+            if i != j {
+                assert!(
+                    !front[i].dominates(&front[j]) || !front[j].dominates(&front[i]),
+                    "front[{i}] and front[{j}] mutually dominate — pareto_front is wrong"
+                );
+            }
+        }
+    }
+    // Sorted by complexity ascending
+    for w in front.windows(2) {
+        assert!(w[0].complexity <= w[1].complexity);
+    }
+}
+
+#[test]
+fn discover_pareto_returns_nonempty() {
+    let inputs: Vec<Vec<f64>> = (0..15).map(|i| vec![(i as f64) * 0.2 + 0.1]).collect();
+    let targets: Vec<f64> = inputs.iter().map(|row| row[0].exp()).collect();
+    let config = SymRegConfig::quick();
+    let engine = SymRegEngine::new(config);
+    let front = engine
+        .discover_pareto(&inputs, &targets, 1)
+        .expect("discover_pareto");
+    assert!(!front.is_empty());
+}
+
+#[test]
+fn cv_mse_none_when_not_configured() {
+    let inputs: Vec<Vec<f64>> = (0..20).map(|i| vec![(i as f64) * 0.1 + 0.1]).collect();
+    let targets: Vec<f64> = inputs.iter().map(|r| r[0] * 2.0).collect();
+    let config = SymRegConfig::quick(); // cv_folds = None
+    let formulas = SymRegEngine::new(config)
+        .discover(&inputs, &targets, 1)
+        .unwrap();
+    for f in &formulas {
+        assert!(
+            f.cv_mse.is_none(),
+            "expected cv_mse = None without cv config"
+        );
+    }
+}
+
+#[test]
+fn cv_mse_some_when_configured() {
+    let inputs: Vec<Vec<f64>> = (0..30).map(|i| vec![(i as f64) * 0.1 + 0.1]).collect();
+    let targets: Vec<f64> = inputs.iter().map(|r| r[0] * 3.0 + 1.0).collect();
+    let config = SymRegConfig {
+        cv_folds: Some(3),
+        ..SymRegConfig::quick()
+    };
+    let formulas = SymRegEngine::new(config)
+        .discover(&inputs, &targets, 1)
+        .unwrap();
+    assert!(!formulas.is_empty());
+    // At least some formulas should have cv_mse populated
+    let has_cv = formulas.iter().any(|f| f.cv_mse.is_some());
+    assert!(
+        has_cv,
+        "expected at least one formula with cv_mse when cv_folds configured"
+    );
 }

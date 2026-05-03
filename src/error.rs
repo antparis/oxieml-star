@@ -37,6 +37,14 @@ pub enum EmlError {
 
     /// Empty input data.
     EmptyData,
+
+    /// A [`tensorlogic_ir::TLExpr`] variant has no `LoweredOp` equivalent.
+    ///
+    /// Produced by `crate::tensorlogic::from_tlexpr` when the input falls
+    /// outside the arithmetic/transcendental subset supported by the bridge
+    /// (for example, logical connectives, quantifiers, or set-theoretic ops).
+    #[cfg(feature = "tensorlogic")]
+    UnsupportedTlExpr(String),
 }
 
 impl fmt::Display for EmlError {
@@ -68,6 +76,10 @@ impl fmt::Display for EmlError {
             }
             Self::NanEncountered => write!(f, "NaN encountered during computation"),
             Self::EmptyData => write!(f, "empty input data"),
+            #[cfg(feature = "tensorlogic")]
+            Self::UnsupportedTlExpr(desc) => {
+                write!(f, "unsupported TLExpr variant: {desc}")
+            }
         }
     }
 }

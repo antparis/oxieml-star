@@ -387,7 +387,7 @@ mod tests {
         let exp_x = Canonical::exp(&x);
         assert_eq!(exp_x.depth(), 1);
         let ctx = EvalCtx::new(&[2.0]);
-        let result = exp_x.eval_real(&ctx).unwrap();
+        let result = exp_x.eval_real(&ctx).expect("exp(x) eval should succeed");
         assert!((result - 2.0_f64.exp()).abs() < 1e-10);
     }
 
@@ -396,7 +396,9 @@ mod tests {
         let e = Canonical::euler();
         assert_eq!(e.depth(), 1);
         let ctx = EvalCtx::new(&[]);
-        let result = e.eval_real(&ctx).unwrap();
+        let result = e
+            .eval_real(&ctx)
+            .expect("euler constant eval should succeed");
         assert!((result - std::f64::consts::E).abs() < 1e-10);
     }
 
@@ -406,7 +408,7 @@ mod tests {
         let ln_x = Canonical::ln(&x);
         assert_eq!(ln_x.depth(), 3);
         let ctx = EvalCtx::new(&[std::f64::consts::E]);
-        let result = ln_x.eval_real(&ctx).unwrap();
+        let result = ln_x.eval_real(&ctx).expect("ln(x) eval should succeed");
         assert!((result - 1.0).abs() < 1e-10);
     }
 
@@ -415,7 +417,7 @@ mod tests {
         let one = EmlTree::one();
         let ln_one = Canonical::ln(&one);
         let ctx = EvalCtx::new(&[]);
-        let result = ln_one.eval_real(&ctx).unwrap();
+        let result = ln_one.eval_real(&ctx).expect("ln(1) eval should succeed");
         assert!(result.abs() < 1e-10);
     }
 
@@ -424,7 +426,7 @@ mod tests {
         let x = EmlTree::var(0);
         let emx = Canonical::e_minus(&x);
         let ctx = EvalCtx::new(&[1.0]);
-        let result = emx.eval_real(&ctx).unwrap();
+        let result = emx.eval_real(&ctx).expect("e_minus(x) eval should succeed");
         assert!((result - (std::f64::consts::E - 1.0)).abs() < 1e-10);
     }
 
@@ -433,7 +435,7 @@ mod tests {
         let x = EmlTree::var(0);
         let neg_x = Canonical::neg(&x);
         let ctx = EvalCtx::new(&[3.0]);
-        let result = neg_x.eval_real(&ctx).unwrap();
+        let result = neg_x.eval_real(&ctx).expect("neg(x) eval should succeed");
         assert!((result - (-3.0)).abs() < 1e-8);
     }
 
@@ -443,7 +445,7 @@ mod tests {
         let y = EmlTree::var(1);
         let diff = Canonical::sub(&x, &y);
         let ctx = EvalCtx::new(&[5.0, 3.0]);
-        let result = diff.eval_real(&ctx).unwrap();
+        let result = diff.eval_real(&ctx).expect("sub(x,y) eval should succeed");
         assert!((result - 2.0).abs() < 1e-8);
     }
 
@@ -453,7 +455,7 @@ mod tests {
         let y = EmlTree::var(1);
         let sum = Canonical::add(&x, &y);
         let ctx = EvalCtx::new(&[2.0, 3.0]);
-        let result = sum.eval_real(&ctx).unwrap();
+        let result = sum.eval_real(&ctx).expect("add(x,y) eval should succeed");
         assert!((result - 5.0).abs() < 1e-6);
     }
 
@@ -463,7 +465,7 @@ mod tests {
         let y = EmlTree::var(1);
         let prod = Canonical::mul(&x, &y);
         let ctx = EvalCtx::new(&[3.0, 4.0]);
-        let result = prod.eval_real(&ctx).unwrap();
+        let result = prod.eval_real(&ctx).expect("mul(x,y) eval should succeed");
         assert!((result - 12.0).abs() < 1e-4);
     }
 
@@ -473,7 +475,7 @@ mod tests {
         let y = EmlTree::var(1);
         let quot = Canonical::div(&x, &y);
         let ctx = EvalCtx::new(&[10.0, 2.0]);
-        let result = quot.eval_real(&ctx).unwrap();
+        let result = quot.eval_real(&ctx).expect("div(x,y) eval should succeed");
         assert!((result - 5.0).abs() < 1e-4);
     }
 
@@ -483,7 +485,7 @@ mod tests {
         let y = EmlTree::var(1);
         let p = Canonical::pow(&x, &y);
         let ctx = EvalCtx::new(&[2.0, 3.0]);
-        let result = p.eval_real(&ctx).unwrap();
+        let result = p.eval_real(&ctx).expect("pow(x,y) eval should succeed");
         assert!((result - 8.0).abs() < 1e-4);
     }
 
@@ -492,7 +494,9 @@ mod tests {
         let x = EmlTree::var(0);
         let recip = Canonical::reciprocal(&x);
         let ctx = EvalCtx::new(&[4.0]);
-        let result = recip.eval_real(&ctx).unwrap();
+        let result = recip
+            .eval_real(&ctx)
+            .expect("reciprocal(x) eval should succeed");
         assert!((result - 0.25).abs() < 1e-8);
     }
 
@@ -500,7 +504,9 @@ mod tests {
     fn test_zero() {
         let z = Canonical::zero();
         let ctx = EvalCtx::new(&[]);
-        let result = z.eval_real(&ctx).unwrap();
+        let result = z
+            .eval_real(&ctx)
+            .expect("zero constant eval should succeed");
         assert!(result.abs() < 1e-10);
     }
 
@@ -509,7 +515,7 @@ mod tests {
         for n in 1..=5u64 {
             let tree = Canonical::nat(n);
             let ctx = EvalCtx::new(&[]);
-            let result = tree.eval_real(&ctx).unwrap();
+            let result = tree.eval_real(&ctx).expect("nat(n) eval should succeed");
             assert!(
                 (result - n as f64).abs() < 0.1,
                 "nat({n}) = {result}, expected {n}"
@@ -522,7 +528,7 @@ mod tests {
         let x = EmlTree::var(0);
         let sqrt_x = Canonical::sqrt(&x);
         let ctx = EvalCtx::new(&[4.0]);
-        let result = sqrt_x.eval_real(&ctx).unwrap();
+        let result = sqrt_x.eval_real(&ctx).expect("sqrt(x) eval should succeed");
         assert!((result - 2.0).abs() < 1e-2);
     }
 
@@ -531,7 +537,7 @@ mod tests {
         let x = EmlTree::var(0);
         let abs_x = Canonical::abs(&x);
         let ctx = EvalCtx::new(&[3.0]);
-        let result = abs_x.eval_real(&ctx).unwrap();
+        let result = abs_x.eval_real(&ctx).expect("abs(x) eval should succeed");
         assert!((result - 3.0).abs() < 1e-2);
     }
 
@@ -541,7 +547,7 @@ mod tests {
         let x_sq = Canonical::square(&x);
         for &val in &[2.0, 3.0, 0.5] {
             let ctx = EvalCtx::new(&[val]);
-            let result = x_sq.eval_real(&ctx).unwrap();
+            let result = x_sq.eval_real(&ctx).expect("square(x) eval should succeed");
             assert!(
                 (result - val * val).abs() < 1e-2,
                 "square({val}) = {result}, expected {}",
@@ -554,7 +560,7 @@ mod tests {
     fn test_neg_one() {
         let tree = Canonical::neg_one();
         let ctx = EvalCtx::new(&[]);
-        let result = tree.eval_real(&ctx).unwrap();
+        let result = tree.eval_real(&ctx).expect("neg_one eval should succeed");
         assert!((result - (-1.0)).abs() < 1e-6);
     }
 
@@ -562,7 +568,7 @@ mod tests {
     fn test_neg_two() {
         let tree = Canonical::neg_two();
         let ctx = EvalCtx::new(&[]);
-        let result = tree.eval_real(&ctx).unwrap();
+        let result = tree.eval_real(&ctx).expect("neg_two eval should succeed");
         assert!((result - (-2.0)).abs() < 0.1);
     }
 
@@ -577,7 +583,9 @@ mod tests {
         );
 
         // Complex eval should give (0, 1)
-        let result = i_tree.eval_complex(&[]).unwrap();
+        let result = i_tree
+            .eval_complex(&[])
+            .expect("imag unit complex eval should succeed");
         assert!(
             result.re.abs() < 1e-4,
             "Re(i) should be ~0, got {}",
@@ -608,7 +616,7 @@ mod tests {
         let sinh_x = Canonical::sinh(&x);
         for &val in &[0.0, 1.0] {
             let ctx = EvalCtx::new(&[val]);
-            let result = sinh_x.eval_real(&ctx).unwrap();
+            let result = sinh_x.eval_real(&ctx).expect("sinh(x) eval should succeed");
             assert!(
                 (result - val.sinh()).abs() < 0.1,
                 "sinh({val}) = {result}, expected {}",
@@ -623,7 +631,7 @@ mod tests {
         let cosh_x = Canonical::cosh(&x);
         for &val in &[0.0, 1.0] {
             let ctx = EvalCtx::new(&[val]);
-            let result = cosh_x.eval_real(&ctx).unwrap();
+            let result = cosh_x.eval_real(&ctx).expect("cosh(x) eval should succeed");
             assert!(
                 (result - val.cosh()).abs() < 0.1,
                 "cosh({val}) = {result}, expected {}",
@@ -649,7 +657,9 @@ mod tests {
         let asinh_x = Canonical::arcsinh(&x);
         // arcsinh(0) = 0
         let ctx = EvalCtx::new(&[0.0]);
-        let result = asinh_x.eval_real(&ctx).unwrap();
+        let result = asinh_x
+            .eval_real(&ctx)
+            .expect("arcsinh(0) eval should succeed");
         assert!(result.abs() < 0.1, "arcsinh(0) = {result}, expected 0");
     }
 
@@ -659,7 +669,9 @@ mod tests {
         let atanh_x = Canonical::arctanh(&x);
         // arctanh(0) = 0
         let ctx = EvalCtx::new(&[0.0]);
-        let result = atanh_x.eval_real(&ctx).unwrap();
+        let result = atanh_x
+            .eval_real(&ctx)
+            .expect("arctanh(0) eval should succeed");
         assert!(result.abs() < 0.1, "arctanh(0) = {result}, expected 0");
     }
 

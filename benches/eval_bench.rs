@@ -9,7 +9,11 @@ fn bench_eval_exp(c: &mut Criterion) {
     let ctx = EvalCtx::new(&[1.5]);
 
     c.bench_function("eval_exp", |b| {
-        b.iter(|| exp_x.eval_real(&ctx).unwrap());
+        b.iter(|| {
+            exp_x
+                .eval_real(&ctx)
+                .expect("bench eval_exp should succeed")
+        });
     });
 }
 
@@ -19,7 +23,7 @@ fn bench_eval_ln(c: &mut Criterion) {
     let ctx = EvalCtx::new(&[2.0]);
 
     c.bench_function("eval_ln", |b| {
-        b.iter(|| ln_x.eval_real(&ctx).unwrap());
+        b.iter(|| ln_x.eval_real(&ctx).expect("bench eval_ln should succeed"));
     });
 }
 
@@ -28,7 +32,7 @@ fn bench_eval_euler(c: &mut Criterion) {
     let ctx = EvalCtx::new(&[]);
 
     c.bench_function("eval_euler", |b| {
-        b.iter(|| e.eval_real(&ctx).unwrap());
+        b.iter(|| e.eval_real(&ctx).expect("bench eval_euler should succeed"));
     });
 }
 
@@ -38,7 +42,11 @@ fn bench_eval_neg(c: &mut Criterion) {
     let ctx = EvalCtx::new(&[3.0]);
 
     c.bench_function("eval_neg", |b| {
-        b.iter(|| neg_x.eval_real(&ctx).unwrap());
+        b.iter(|| {
+            neg_x
+                .eval_real(&ctx)
+                .expect("bench eval_neg should succeed")
+        });
     });
 }
 
@@ -48,7 +56,11 @@ fn bench_eval_batch(c: &mut Criterion) {
     let data: Vec<Vec<f64>> = (0..1000).map(|i| vec![i as f64 * 0.01]).collect();
 
     c.bench_function("eval_batch_1000", |b| {
-        b.iter(|| exp_x.eval_batch(&data).unwrap());
+        b.iter(|| {
+            exp_x
+                .eval_batch(&data)
+                .expect("bench eval_batch_1000 should succeed")
+        });
     });
 }
 
@@ -58,7 +70,11 @@ fn bench_eval_batch_10000(c: &mut Criterion) {
     let data: Vec<Vec<f64>> = (0..10_000).map(|i| vec![i as f64 * 0.001]).collect();
 
     c.bench_function("eval_batch_10000_sequential", |b| {
-        b.iter(|| exp_x.eval_batch(&data).unwrap());
+        b.iter(|| {
+            exp_x
+                .eval_batch(&data)
+                .expect("bench eval_batch_10000 should succeed")
+        });
     });
 }
 
@@ -69,7 +85,11 @@ fn bench_eval_batch_10000_parallel(c: &mut Criterion) {
     let data: Vec<Vec<f64>> = (0..10_000).map(|i| vec![i as f64 * 0.001]).collect();
 
     c.bench_function("eval_batch_10000_parallel", |b| {
-        b.iter(|| exp_x.eval_batch(&data).unwrap());
+        b.iter(|| {
+            exp_x
+                .eval_batch(&data)
+                .expect("bench eval_batch parallel should succeed")
+        });
     });
 }
 
@@ -87,12 +107,16 @@ fn bench_symreg_discover_parallel(c: &mut Criterion) {
         complexity_penalty: 1e-4,
         num_restarts: 1,
         integer_rounding: false,
+        cv_folds: None,
+        ..SymRegConfig::default()
     };
 
     c.bench_function("symreg_discover_parallel", |b| {
         b.iter(|| {
             let engine = SymRegEngine::new(config.clone());
-            engine.discover(&inputs, &targets, 1).unwrap()
+            engine
+                .discover(&inputs, &targets, 1)
+                .expect("symbolic regression discover should succeed")
         });
     });
 }

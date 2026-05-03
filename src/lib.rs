@@ -44,26 +44,61 @@ pub mod error;
 pub mod eval;
 pub mod grad;
 pub mod lower;
+pub mod lower_grad;
+pub mod lower_interval;
+pub mod lower_simplify;
+pub mod lower_units;
+pub mod named_const;
 pub mod parser;
 #[cfg(feature = "simd")]
 pub mod simd_eval;
 pub mod simplify;
 #[cfg(feature = "smt")]
 pub mod smt;
+pub mod solve;
 pub mod symreg;
+#[cfg(feature = "tensorlogic")]
+pub mod tensorlogic;
 pub mod tree;
+pub mod units;
+
+#[cfg(feature = "scirs2")]
+pub mod scirs2;
+
+#[cfg(feature = "python")]
+pub mod python;
+
+#[cfg(feature = "wasm")]
+pub mod wasm;
+
+#[cfg(feature = "jit")]
+pub mod jit;
 
 // Re-exports for convenience
 pub use canonical::Canonical;
 pub use error::EmlError;
 pub use eval::EvalCtx;
 pub use lower::LoweredOp;
+pub use lower_interval::IntervalLO;
+pub use named_const::NamedConst;
 pub use parser::{ParseError, parse};
-pub use symreg::{SymRegConfig, SymRegEngine};
+pub use solve::SolveResult;
+pub use symreg::SymRegLoss;
+pub use symreg::{
+    DiscoveredFormula, MultiOutputStrategy, SymRegConfig, SymRegEngine, SymRegStrategy,
+    pareto_front,
+};
 pub use tree::{EmlNode, EmlTree};
+pub use units::{UnitError, Units};
 
 #[cfg(feature = "smt")]
 pub use smt::{
     EmlConstraint, EmlNraSolver, EmlSmtSolver, EmlSolution, Interval, IntervalDomain, PropResult,
     SmtResult,
 };
+
+#[cfg(feature = "scirs2")]
+pub use scirs2::{symbolic_regression, symbolic_regression_multi, symbolic_regression_with_names};
+
+#[cfg(feature = "jit")]
+pub use jit::{JitCache, JitFn};

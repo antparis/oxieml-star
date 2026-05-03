@@ -1,6 +1,6 @@
 [package]
 name = "oxieml"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.87"
 description = "EML operator: all elementary functions from exp(x) - ln(y)"
@@ -18,18 +18,45 @@ num-complex = "0.4"
 rand = "0.10"
 rayon = { version = "1.12", optional = true }
 oxiblas-core = { version = "0.2.1", optional = true, default-features = false, features = ["std"] }
-oxiz = { version = "0.2", optional = true, default-features = false, features = ["std"] }
+oxiz = { version = "0.2.1", optional = true, default-features = false, features = ["std"] }
 num-rational = { version = "0.4", optional = true }
+tensorlogic-ir = { version = "0.1.0", optional = true }
+scirs2-core = { version = "0.4.3", optional = true, default-features = false, features = ["std"] }
+ndarray = { version = "0.17.2", optional = true, default-features = false, features = ["std"] }
+pyo3 = { version = "0.28.3", optional = true, features = ["abi3-py39"] }
+numpy = { version = "0.28.0", optional = true }
+serde = { version = "1", features = ["derive", "rc"], optional = true }
+serde_json = { version = "1", optional = true }
+oxicode = { version = "0.2.2", optional = true, features = ["serde"] }
+wasm-bindgen = { version = "0.2.118", optional = true, features = ["serde-serialize"] }
+cranelift-codegen = { version = "0.131", optional = true }
+cranelift-frontend = { version = "0.131", optional = true }
+cranelift-jit = { version = "0.131", optional = true }
+cranelift-module = { version = "0.131", optional = true }
 
 [dev-dependencies]
 criterion = "0.8"
 approx = "0.5"
+assert_cmd = "2.2"
+predicates = "3.1"
+proptest = "1.11"
 
 [features]
 default = []
 smt = ["dep:oxiz", "dep:num-rational"]
 simd = ["dep:oxiblas-core"]
 parallel = ["dep:rayon"]
+tensorlogic = ["dep:tensorlogic-ir"]
+scirs2 = ["dep:scirs2-core", "dep:ndarray"]
+serde = ["dep:serde", "dep:serde_json", "dep:oxicode"]
+python = ["dep:pyo3", "dep:numpy"]
+python-extension = ["python", "pyo3/extension-module"]
+wasm = ["dep:wasm-bindgen"]
+jit = ["dep:cranelift-codegen", "dep:cranelift-frontend", "dep:cranelift-jit", "dep:cranelift-module"]
+
+[lib]
+name = "oxieml"
+crate-type = ["rlib"]
 
 [[bin]]
 name = "oxieml"
@@ -37,4 +64,8 @@ path = "src/bin/oxieml.rs"
 
 [[bench]]
 name = "eval_bench"
+harness = false
+
+[[bench]]
+name = "trig_bench"
 harness = false

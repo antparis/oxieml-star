@@ -229,48 +229,50 @@ mod tests {
 
     #[test]
     fn test_parse_one() {
-        let tree = parse("1").unwrap();
+        let tree = parse("1").expect("parse of \"1\" should succeed");
         assert_eq!(tree.size(), 1);
         assert_eq!(*tree.root, EmlNode::One);
     }
 
     #[test]
     fn test_parse_var() {
-        let tree = parse("x0").unwrap();
+        let tree = parse("x0").expect("parse of \"x0\" should succeed");
         assert_eq!(*tree.root, EmlNode::Var(0));
     }
 
     #[test]
     fn test_parse_eml_e_notation() {
-        let tree = parse("E(1, 1)").unwrap();
+        let tree = parse("E(1, 1)").expect("parse of E(1,1) should succeed");
         assert_eq!(tree.depth(), 1);
         assert_eq!(tree.size(), 3);
     }
 
     #[test]
     fn test_parse_eml_full_notation() {
-        let tree = parse("eml(1, 1)").unwrap();
+        let tree = parse("eml(1, 1)").expect("parse of eml(1,1) should succeed");
         assert_eq!(tree.depth(), 1);
     }
 
     #[test]
     fn test_parse_nested() {
-        let tree = parse("E(E(1, 1), 1)").unwrap();
+        let tree = parse("E(E(1, 1), 1)").expect("parse of nested E() should succeed");
         assert_eq!(tree.depth(), 2);
     }
 
     #[test]
     fn test_parse_no_spaces() {
-        let tree = parse("E(E(1,E(1,1)),1)").unwrap();
+        let tree = parse("E(E(1,E(1,1)),1)").expect("parse without spaces should succeed");
         assert_eq!(tree.depth(), 3);
     }
 
     #[test]
     fn test_parse_eval_euler() {
         use crate::eval::EvalCtx;
-        let tree = parse("E(1,1)").unwrap();
+        let tree = parse("E(1,1)").expect("parse of E(1,1) euler should succeed");
         let ctx = EvalCtx::new(&[]);
-        let result = tree.eval_real(&ctx).unwrap();
+        let result = tree
+            .eval_real(&ctx)
+            .expect("eval of euler tree should succeed");
         assert!((result - std::f64::consts::E).abs() < 1e-10);
     }
 
@@ -278,9 +280,11 @@ mod tests {
     fn test_parse_eval_exp() {
         use crate::eval::EvalCtx;
         // E(x0, 1) = exp(x0)
-        let tree = parse("E(x0, 1)").unwrap();
+        let tree = parse("E(x0, 1)").expect("parse of E(x0,1) should succeed");
         let ctx = EvalCtx::new(&[2.0]);
-        let result = tree.eval_real(&ctx).unwrap();
+        let result = tree
+            .eval_real(&ctx)
+            .expect("eval of exp tree should succeed");
         assert!((result - 2.0_f64.exp()).abs() < 1e-10);
     }
 
@@ -288,19 +292,21 @@ mod tests {
     fn test_parse_eval_ln() {
         use crate::eval::EvalCtx;
         // ln(x) = E(1, E(E(1, x0), 1))
-        let tree = parse("E(1, E(E(1, x0), 1))").unwrap();
+        let tree = parse("E(1, E(E(1, x0), 1))").expect("parse of ln tree should succeed");
         let ctx = EvalCtx::new(&[std::f64::consts::E]);
-        let result = tree.eval_real(&ctx).unwrap();
+        let result = tree
+            .eval_real(&ctx)
+            .expect("eval of ln tree should succeed");
         assert!((result - 1.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_roundtrip_compact() {
-        let tree = parse("E(E(1,1),E(x0,1))").unwrap();
+        let tree = parse("E(E(1,1),E(x0,1))").expect("parse of roundtrip tree should succeed");
         let compact = to_compact_string(&tree);
         assert_eq!(compact, "E(E(1,1),E(x0,1))");
         // Parse again
-        let tree2 = parse(&compact).unwrap();
+        let tree2 = parse(&compact).expect("re-parse of compact string should succeed");
         assert_eq!(tree, tree2);
     }
 

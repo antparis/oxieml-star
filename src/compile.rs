@@ -109,6 +109,21 @@ pub fn compile_to_rust_batch(tree: &EmlTree, fn_name: &str) -> String {
 /// Emit a Rust expression string for a `LoweredOp`.
 fn emit_rust_expr(op: &LoweredOp) -> String {
     match op {
+        LoweredOp::NamedConst(nc) => {
+            // Emit the f64 constant using the same logic as Const
+            let c = nc.value();
+            if (c - std::f64::consts::E).abs() < 1e-15 {
+                "std::f64::consts::E".to_string()
+            } else if (c - std::f64::consts::PI).abs() < 1e-15 {
+                "std::f64::consts::PI".to_string()
+            } else if (c - std::f64::consts::SQRT_2).abs() < 1e-15 {
+                "std::f64::consts::SQRT_2".to_string()
+            } else if (c - c.round()).abs() < 1e-10 && c.abs() < 1e15 {
+                format!("{}_f64", c as i64)
+            } else {
+                format!("{c:.15e}_f64")
+            }
+        }
         LoweredOp::Const(c) => {
             if (c - std::f64::consts::E).abs() < 1e-15 {
                 "std::f64::consts::E".to_string()
@@ -150,6 +165,36 @@ fn emit_rust_expr(op: &LoweredOp) -> String {
         }
         LoweredOp::Neg(a) => {
             format!("(-({}))", emit_rust_expr(a))
+        }
+        LoweredOp::Tan(a) => {
+            format!("({}).tan()", emit_rust_expr(a))
+        }
+        LoweredOp::Sinh(a) => {
+            format!("({}).sinh()", emit_rust_expr(a))
+        }
+        LoweredOp::Cosh(a) => {
+            format!("({}).cosh()", emit_rust_expr(a))
+        }
+        LoweredOp::Tanh(a) => {
+            format!("({}).tanh()", emit_rust_expr(a))
+        }
+        LoweredOp::Arcsin(a) => {
+            format!("({}).asin()", emit_rust_expr(a))
+        }
+        LoweredOp::Arccos(a) => {
+            format!("({}).acos()", emit_rust_expr(a))
+        }
+        LoweredOp::Arctan(a) => {
+            format!("({}).atan()", emit_rust_expr(a))
+        }
+        LoweredOp::Arcsinh(a) => {
+            format!("({}).asinh()", emit_rust_expr(a))
+        }
+        LoweredOp::Arccosh(a) => {
+            format!("({}).acosh()", emit_rust_expr(a))
+        }
+        LoweredOp::Arctanh(a) => {
+            format!("({}).atanh()", emit_rust_expr(a))
         }
     }
 }

@@ -10,6 +10,7 @@ use std::sync::Arc;
 /// EML tree node. All nodes share the same type — uniform binary tree.
 /// `Arc` enables O(1) subtree sharing during symbolic regression.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum EmlNode {
     /// Constant 1 (the only constant in the paper's grammar).
     One,
@@ -28,6 +29,8 @@ pub enum EmlNode {
 
 /// EML tree with metadata.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub struct EmlTree {
     /// Root node of the tree.
     pub root: Arc<EmlNode>,
@@ -184,6 +187,34 @@ fn count_vars(node: &EmlNode) -> usize {
         EmlNode::One => 0,
         EmlNode::Var(i) => i + 1,
         EmlNode::Eml { left, right } => count_vars(left).max(count_vars(right)),
+    }
+}
+
+#[cfg(feature = "serde")]
+impl EmlTree {
+    /// Serialize to a JSON string.
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
+    }
+
+    /// Deserialize from a JSON string.
+    pub fn from_json(json: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(json)
+    }
+
+    /// Serialize to a pretty-printed JSON string.
+    pub fn to_json_pretty(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string_pretty(self)
+    }
+
+    /// Serialize to binary using `oxicode`.
+    pub fn to_binary(&self) -> Result<Vec<u8>, oxicode::Error> {
+        oxicode::serde::encode_serde(self)
+    }
+
+    /// Deserialize from binary bytes encoded with [`Self::to_binary`].
+    pub fn from_binary(bytes: &[u8]) -> Result<Self, oxicode::Error> {
+        oxicode::serde::decode_serde(bytes)
     }
 }
 

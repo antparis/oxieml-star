@@ -5,14 +5,31 @@
 //! Lowering converts EML trees to conventional operation trees for efficient
 //! evaluation and human-readable output.
 
+use crate::error::EmlError;
+use crate::eval::EvalCtx;
+use crate::named_const::NamedConst;
 use crate::tree::{EmlNode, EmlTree};
 use std::fmt;
+use std::sync::OnceLock;
+
+/// Sentinel variable index used as a wildcard in structural templates.
+///
+/// When a template contains `EmlNode::Var(WILDCARD_VAR)`, the matcher
+/// captures the corresponding subtree from the candidate and enforces
+/// that every wildcard occurrence refers to the same captured subtree.
+///
+/// Chosen well below `usize::MAX` to avoid overflow in `count_vars`
+/// (which computes `i + 1`) and `EmlTree::var` (same), yet far above
+/// any realistic user variable index.
+const WILDCARD_VAR: usize = usize::MAX / 2;
 
 /// A conventional mathematical operation tree.
 ///
 /// Produced by lowering an EML tree. Supports efficient evaluation
 /// and pretty-printing.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum LoweredOp {
     /// Constant value.
     Const(f64),
@@ -38,6 +55,32 @@ pub enum LoweredOp {
     Pow(Box<LoweredOp>, Box<LoweredOp>),
     /// Negation.
     Neg(Box<LoweredOp>),
+    /// Tangent.
+    Tan(Box<LoweredOp>),
+    /// Hyperbolic sine.
+    Sinh(Box<LoweredOp>),
+    /// Hyperbolic cosine.
+    Cosh(Box<LoweredOp>),
+    /// Hyperbolic tangent.
+    Tanh(Box<LoweredOp>),
+    /// Inverse sine (arcsine).
+    Arcsin(Box<LoweredOp>),
+    /// Inverse cosine (arccosine).
+    Arccos(Box<LoweredOp>),
+    /// Inverse tangent (arctangent).
+    Arctan(Box<LoweredOp>),
+    /// Inverse hyperbolic sine.
+    Arcsinh(Box<LoweredOp>),
+    /// Inverse hyperbolic cosine.
+    Arccosh(Box<LoweredOp>),
+    /// Inverse hyperbolic tangent.
+    Arctanh(Box<LoweredOp>),
+    /// A named mathematical constant (π, e, √2, …).
+    ///
+    /// Created only by the constants-extraction pass in [`crate::symreg`];
+    /// never emitted by lowering. Constant-folds down to `Const(value())` on
+    /// the first `simplify` call that encounters it in a binary/unary context.
+    NamedConst(NamedConst),
 }
 
 /// Flat post-order instruction for stack-machine evaluation.
@@ -71,7 +114,29 @@ pub enum OxiOp {
     Cos,
     /// Pop two (base, exp), push base^exp.
     Pow,
+    /// Pop one, push tan.
+    Tan,
+    /// Pop one, push sinh.
+    Sinh,
+    /// Pop one, push cosh.
+    Cosh,
+    /// Pop one, push tanh.
+    Tanh,
+    /// Pop one, push arcsin (asin).
+    Arcsin,
+    /// Pop one, push arccos (acos).
+    Arccos,
+    /// Pop one, push arctan (atan).
+    Arctan,
+    /// Pop one, push arcsinh (asinh).
+    Arcsinh,
+    /// Pop one, push arccosh (acosh).
+    Arccosh,
+    /// Pop one, push arctanh (atanh).
+    Arctanh,
 }
+
+pub use crate::lower_interval::IntervalLO;
 
 impl EmlTree {
     /// Lower an EML tree to a conventional operation tree.
@@ -81,6 +146,30 @@ impl EmlTree {
     /// subtrees are lowered as literal `exp(left) - ln(right)`.
     pub fn lower(&self) -> LoweredOp {
         lower_node(&self.root)
+    }
+
+    /// Evaluate the tree at real-valued variables **via the lowered IR**.
+    ///
+    /// Unlike [`EmlTree::eval_real`], which walks the raw EML tree through
+    /// complex arithmetic (and accumulates ~1e-2 precision drift on deep
+    /// constructions such as `Canonical::sin(x)`), this method first lowers
+    /// the tree (recognising `sin`/`cos`/arithmetic patterns), simplifies
+    /// the lowered IR, and evaluates through the `OxiOp` stack machine.
+    ///
+    /// Because the stack machine dispatches directly to `f64::sin`/`f64::cos`
+    /// when the lowering recognised a trig pattern, the result attains
+    /// full `f64` precision (~1e-15).
+    ///
+    /// # Errors
+    /// Returns `Err(EmlError::NanEncountered)` if the IR evaluates to NaN.
+    pub fn eval_real_lowered(&self, ctx: &EvalCtx) -> Result<f64, EmlError> {
+        let lowered = self.lower().simplify();
+        let ops = lowered.to_oxiblas_ops();
+        let result = LoweredOp::eval_ops(&ops, ctx.as_slice());
+        if result.is_nan() {
+            return Err(EmlError::NanEncountered);
+        }
+        Ok(result)
     }
 }
 
@@ -92,6 +181,18 @@ fn lower_node(node: &EmlNode) -> LoweredOp {
         EmlNode::Eml { left, right } => {
             // Try to recognize known patterns before falling back to exp(l) - ln(r).
             // Patterns are checked most-specific first to avoid premature matches.
+
+            // Most specific: recognise canonical `Canonical::sin(x)` / `Canonical::cos(x)`
+            // tree shapes and lower them to native `LoweredOp::Sin` / `LoweredOp::Cos`,
+            // giving f64::sin / f64::cos precision (~1e-15) instead of the ~1e-2 drift
+            // that complex-arithmetic evaluation accumulates over the deep Euler-formula
+            // EML tree.
+            if let Some(inner) = match_sin_structure(node) {
+                return LoweredOp::Sin(Box::new(lower_node(&inner)));
+            }
+            if let Some(inner) = match_cos_structure(node) {
+                return LoweredOp::Cos(Box::new(lower_node(&inner)));
+            }
 
             // Pattern: eml(x, One) = exp(x)
             if matches!(right.as_ref(), EmlNode::One) {
@@ -213,6 +314,119 @@ fn match_ln_of_right(right: &EmlNode) -> Option<EmlNode> {
     None
 }
 
+/// Lazily-initialised canonical `sin(x_placeholder)` tree, where `x_placeholder`
+/// is `EmlNode::Var(WILDCARD_VAR)`. Used as a unification template.
+fn sin_template() -> &'static EmlNode {
+    static TEMPLATE: OnceLock<EmlNode> = OnceLock::new();
+    TEMPLATE.get_or_init(|| {
+        let placeholder = EmlTree::var(WILDCARD_VAR);
+        let tree = crate::canonical::Canonical::sin(&placeholder);
+        (*tree.root).clone()
+    })
+}
+
+/// Lazily-initialised canonical `cos(x_placeholder)` tree.
+fn cos_template() -> &'static EmlNode {
+    static TEMPLATE: OnceLock<EmlNode> = OnceLock::new();
+    TEMPLATE.get_or_init(|| {
+        let placeholder = EmlTree::var(WILDCARD_VAR);
+        let tree = crate::canonical::Canonical::cos(&placeholder);
+        (*tree.root).clone()
+    })
+}
+
+/// Unify `candidate` against `template`, where `template` may contain wildcards
+/// (`EmlNode::Var(WILDCARD_VAR)`). On success, returns `Some(captured_subtree)`.
+///
+/// All wildcard occurrences in the template must capture the **same** subtree
+/// structurally. If any mismatch or inconsistent capture is found, returns `None`.
+///
+/// Non-wildcard leaves and internal nodes must match exactly; two `Eml` nodes
+/// recurse on both children.
+fn unify_with_wildcard<'a>(
+    candidate: &'a EmlNode,
+    template: &EmlNode,
+    captured: &mut Option<&'a EmlNode>,
+) -> bool {
+    // Wildcard in template captures (or must agree with previous capture).
+    if let EmlNode::Var(idx) = template {
+        if *idx == WILDCARD_VAR {
+            match captured {
+                None => {
+                    *captured = Some(candidate);
+                    return true;
+                }
+                Some(prev) => {
+                    return nodes_structurally_equal(prev, candidate);
+                }
+            }
+        }
+    }
+
+    match (candidate, template) {
+        (EmlNode::One, EmlNode::One) => true,
+        (EmlNode::Var(a), EmlNode::Var(b)) => a == b,
+        (
+            EmlNode::Eml {
+                left: la,
+                right: ra,
+            },
+            EmlNode::Eml {
+                left: lb,
+                right: rb,
+            },
+        ) => {
+            unify_with_wildcard(la.as_ref(), lb.as_ref(), captured)
+                && unify_with_wildcard(ra.as_ref(), rb.as_ref(), captured)
+        }
+        _ => false,
+    }
+}
+
+/// Structural equality on `EmlNode` references.
+fn nodes_structurally_equal(a: &EmlNode, b: &EmlNode) -> bool {
+    match (a, b) {
+        (EmlNode::One, EmlNode::One) => true,
+        (EmlNode::Var(i), EmlNode::Var(j)) => i == j,
+        (
+            EmlNode::Eml {
+                left: la,
+                right: ra,
+            },
+            EmlNode::Eml {
+                left: lb,
+                right: rb,
+            },
+        ) => {
+            nodes_structurally_equal(la.as_ref(), lb.as_ref())
+                && nodes_structurally_equal(ra.as_ref(), rb.as_ref())
+        }
+        _ => false,
+    }
+}
+
+/// Recognise the canonical `Canonical::sin(x)` EML tree shape.
+/// Returns the captured `x` subtree on success.
+fn match_sin_structure(node: &EmlNode) -> Option<EmlNode> {
+    let mut captured: Option<&EmlNode> = None;
+    if unify_with_wildcard(node, sin_template(), &mut captured) {
+        captured.cloned()
+    } else {
+        None
+    }
+}
+
+/// Recognise the canonical `Canonical::cos(x)` EML tree shape.
+/// Returns the captured `x` subtree on success.
+fn match_cos_structure(node: &EmlNode) -> Option<EmlNode> {
+    let mut captured: Option<&EmlNode> = None;
+    if unify_with_wildcard(node, cos_template(), &mut captured) {
+        captured.cloned()
+    } else {
+        None
+    }
+}
+
 impl LoweredOp {
     /// Flatten this tree into a post-order instruction list for stack-machine evaluation.
     ///
@@ -227,6 +441,7 @@ impl LoweredOp {
     fn collect_ops(&self, ops: &mut Vec<OxiOp>) {
         match self {
             Self::Const(c) => ops.push(OxiOp::Const(*c)),
+            Self::NamedConst(nc) => ops.push(OxiOp::Const(nc.value())),
             Self::Var(i) => ops.push(OxiOp::Var(*i)),
             Self::Add(a, b) => {
                 a.collect_ops(ops);
@@ -272,6 +487,46 @@ impl LoweredOp {
             Self::Neg(a) => {
                 a.collect_ops(ops);
                 ops.push(OxiOp::Neg);
+            }
+            Self::Tan(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Tan);
+            }
+            Self::Sinh(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Sinh);
+            }
+            Self::Cosh(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Cosh);
+            }
+            Self::Tanh(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Tanh);
+            }
+            Self::Arcsin(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Arcsin);
+            }
+            Self::Arccos(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Arccos);
+            }
+            Self::Arctan(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Arctan);
+            }
+            Self::Arcsinh(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Arcsinh);
+            }
+            Self::Arccosh(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Arccosh);
+            }
+            Self::Arctanh(a) => {
+                a.collect_ops(ops);
+                ops.push(OxiOp::Arctanh);
             }
         }
     }
@@ -333,6 +588,46 @@ impl LoweredOp {
                     let a = stack.pop().unwrap_or(f64::NAN);
                     stack.push(a.powf(b));
                 }
+                OxiOp::Tan => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.tan());
+                }
+                OxiOp::Sinh => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.sinh());
+                }
+                OxiOp::Cosh => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.cosh());
+                }
+                OxiOp::Tanh => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.tanh());
+                }
+                OxiOp::Arcsin => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.asin());
+                }
+                OxiOp::Arccos => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.acos());
+                }
+                OxiOp::Arctan => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.atan());
+                }
+                OxiOp::Arcsinh => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.asinh());
+                }
+                OxiOp::Arccosh => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.acosh());
+                }
+                OxiOp::Arctanh => {
+                    let a = stack.pop().unwrap_or(f64::NAN);
+                    stack.push(a.atanh());
+                }
             }
         }
         stack.pop().unwrap_or(f64::NAN)
@@ -384,6 +679,12 @@ impl LoweredOp {
                 0u8.hash(state);
                 c.to_bits().hash(state);
             }
+            Self::NamedConst(nc) => {
+                // Hash as if it were the equivalent Const so structural
+                // deduplication treats NamedConst(Pi) == Const(PI).
+                0u8.hash(state);
+                nc.value().to_bits().hash(state);
+            }
             Self::Var(i) => {
                 1u8.hash(state);
                 i.hash(state);
@@ -433,6 +734,46 @@ impl LoweredOp {
                 a.structural_hash(state);
                 11u8.hash(state);
             }
+            Self::Tan(a) => {
+                a.structural_hash(state);
+                12u8.hash(state);
+            }
+            Self::Sinh(a) => {
+                a.structural_hash(state);
+                13u8.hash(state);
+            }
+            Self::Cosh(a) => {
+                a.structural_hash(state);
+                14u8.hash(state);
+            }
+            Self::Tanh(a) => {
+                a.structural_hash(state);
+                15u8.hash(state);
+            }
+            Self::Arcsin(a) => {
+                a.structural_hash(state);
+                16u8.hash(state);
+            }
+            Self::Arccos(a) => {
+                a.structural_hash(state);
+                17u8.hash(state);
+            }
+            Self::Arctan(a) => {
+                a.structural_hash(state);
+                18u8.hash(state);
+            }
+            Self::Arcsinh(a) => {
+                a.structural_hash(state);
+                19u8.hash(state);
+            }
+            Self::Arccosh(a) => {
+                a.structural_hash(state);
+                20u8.hash(state);
+            }
+            Self::Arctanh(a) => {
+                a.structural_hash(state);
+                21u8.hash(state);
+            }
         }
     }
 
@@ -441,10 +782,128 @@ impl LoweredOp {
         format!("{self}")
     }
 
+    /// Convert to a LaTeX math expression string.
+    ///
+    /// Produces valid LaTeX for use inside `$...$` or `\[...\]` math mode.
+    ///
+    /// # Examples
+    /// ```
+    /// use oxieml::LoweredOp;
+    /// let expr = LoweredOp::Div(
+    ///     Box::new(LoweredOp::Const(1.0)),
+    ///     Box::new(LoweredOp::Var(0)),
+    /// );
+    /// assert_eq!(expr.to_latex(), r"\frac{1}{x_{0}}");
+    /// ```
+    pub fn to_latex(&self) -> String {
+        fn render(op: &LoweredOp, top_level: bool) -> String {
+            match op {
+                LoweredOp::NamedConst(nc) => nc.to_latex().to_string(),
+                LoweredOp::Const(c) => {
+                    if (*c - std::f64::consts::E).abs() < 1e-15 {
+                        "e".to_string()
+                    } else if (*c - std::f64::consts::PI).abs() < 1e-15 {
+                        r"\pi".to_string()
+                    } else if (*c - std::f64::consts::TAU).abs() < 1e-15 {
+                        r"2\pi".to_string()
+                    } else if (*c - (-1.0_f64)).abs() < 1e-15 {
+                        "-1".to_string()
+                    } else if (c - c.round()).abs() < 1e-10 && c.abs() < 1e15 {
+                        format!("{}", *c as i64)
+                    } else {
+                        format!("{c:.6}")
+                    }
+                }
+                LoweredOp::Var(i) => format!("x_{{{i}}}"),
+                LoweredOp::Add(a, b) => {
+                    let inner = format!("{} + {}", render(a, false), render(b, false));
+                    if top_level {
+                        inner
+                    } else {
+                        format!("({inner})")
+                    }
+                }
+                LoweredOp::Sub(a, b) => {
+                    let inner = format!("{} - {}", render(a, false), render(b, false));
+                    if top_level {
+                        inner
+                    } else {
+                        format!("({inner})")
+                    }
+                }
+                LoweredOp::Mul(a, b) => {
+                    let inner = format!(r"{} \cdot {}", render(a, false), render(b, false));
+                    if top_level {
+                        inner
+                    } else {
+                        format!("({inner})")
+                    }
+                }
+                LoweredOp::Div(a, b) => {
+                    format!(r"\frac{{{}}}{{{}}}", render(a, true), render(b, true))
+                }
+                LoweredOp::Exp(a) => {
+                    let arg = render(a, true);
+                    format!("e^{{{arg}}}")
+                }
+                LoweredOp::Ln(a) => {
+                    format!(r"\ln\left({}\right)", render(a, true))
+                }
+                LoweredOp::Sin(a) => {
+                    format!(r"\sin\left({}\right)", render(a, true))
+                }
+                LoweredOp::Cos(a) => {
+                    format!(r"\cos\left({}\right)", render(a, true))
+                }
+                LoweredOp::Pow(base, exp) => {
+                    let b = render(base, false);
+                    let e = render(exp, true);
+                    format!("{b}^{{{e}}}")
+                }
+                LoweredOp::Neg(a) => {
+                    let inner = render(a, false);
+                    format!("-{inner}")
+                }
+                LoweredOp::Tan(a) => {
+                    format!(r"\tan{{{}}}", render(a, true))
+                }
+                LoweredOp::Sinh(a) => {
+                    format!(r"\sinh{{{}}}", render(a, true))
+                }
+                LoweredOp::Cosh(a) => {
+                    format!(r"\cosh{{{}}}", render(a, true))
+                }
+                LoweredOp::Tanh(a) => {
+                    format!(r"\tanh{{{}}}", render(a, true))
+                }
+                LoweredOp::Arcsin(a) => {
+                    format!(r"\arcsin{{{}}}", render(a, true))
+                }
+                LoweredOp::Arccos(a) => {
+                    format!(r"\arccos{{{}}}", render(a, true))
+                }
+                LoweredOp::Arctan(a) => {
+                    format!(r"\arctan{{{}}}", render(a, true))
+                }
+                LoweredOp::Arcsinh(a) => {
+                    format!(r"\operatorname{{arcsinh}}{{{}}}", render(a, true))
+                }
+                LoweredOp::Arccosh(a) => {
+                    format!(r"\operatorname{{arccosh}}{{{}}}", render(a, true))
+                }
+                LoweredOp::Arctanh(a) => {
+                    format!(r"\operatorname{{arctanh}}{{{}}}", render(a, true))
+                }
+            }
+        }
+        render(self, true)
+    }
+
     /// Evaluate the lowered operation tree with the given variable values.
     pub fn eval(&self, vars: &[f64]) -> f64 {
         match self {
             Self::Const(c) => *c,
+            Self::NamedConst(nc) => nc.value(),
             Self::Var(i) => vars[*i],
             Self::Add(a, b) => a.eval(vars) + b.eval(vars),
             Self::Sub(a, b) => a.eval(vars) - b.eval(vars),
@@ -456,159 +915,16 @@ impl LoweredOp {
             Self::Cos(a) => a.eval(vars).cos(),
             Self::Pow(a, b) => a.eval(vars).powf(b.eval(vars)),
             Self::Neg(a) => -a.eval(vars),
-        }
-    }
-
-    /// Simplify the lowered operation tree.
-    ///
-    /// Applies constant folding and algebraic simplifications.
-    pub fn simplify(&self) -> Self {
-        match self {
-            Self::Add(a, b) => {
-                let a_s = a.simplify();
-                let b_s = b.simplify();
-                // 0 + x = x
-                if let Self::Const(c) = &a_s {
-                    if c.abs() < 1e-15 {
-                        return b_s;
-                    }
-                }
-                // x + 0 = x
-                if let Self::Const(c) = &b_s {
-                    if c.abs() < 1e-15 {
-                        return a_s;
-                    }
-                }
-                // const + const
-                if let (Self::Const(a_c), Self::Const(b_c)) = (&a_s, &b_s) {
-                    return Self::Const(a_c + b_c);
-                }
-                Self::Add(Box::new(a_s), Box::new(b_s))
-            }
-            Self::Sub(a, b) => {
-                let a_s = a.simplify();
-                let b_s = b.simplify();
-                // x - 0 = x
-                if let Self::Const(c) = &b_s {
-                    if c.abs() < 1e-15 {
-                        return a_s;
-                    }
-                }
-                // 0 - x = -x
-                if let Self::Const(c) = &a_s {
-                    if c.abs() < 1e-15 {
-                        return Self::Neg(Box::new(b_s));
-                    }
-                }
-                if let (Self::Const(a_c), Self::Const(b_c)) = (&a_s, &b_s) {
-                    return Self::Const(a_c - b_c);
-                }
-                Self::Sub(Box::new(a_s), Box::new(b_s))
-            }
-            Self::Mul(a, b) => {
-                let a_s = a.simplify();
-                let b_s = b.simplify();
-                // 0 * x = 0
-                if let Self::Const(c) = &a_s {
-                    if c.abs() < 1e-15 {
-                        return Self::Const(0.0);
-                    }
-                }
-                if let Self::Const(c) = &b_s {
-                    if c.abs() < 1e-15 {
-                        return Self::Const(0.0);
-                    }
-                }
-                // 1 * x = x
-                if let Self::Const(c) = &a_s {
-                    if (*c - 1.0).abs() < 1e-15 {
-                        return b_s;
-                    }
-                }
-                if let Self::Const(c) = &b_s {
-                    if (*c - 1.0).abs() < 1e-15 {
-                        return a_s;
-                    }
-                }
-                if let (Self::Const(a_c), Self::Const(b_c)) = (&a_s, &b_s) {
-                    return Self::Const(a_c * b_c);
-                }
-                Self::Mul(Box::new(a_s), Box::new(b_s))
-            }
-            Self::Div(a, b) => {
-                let a_s = a.simplify();
-                let b_s = b.simplify();
-                // x / 1 = x
-                if let Self::Const(c) = &b_s {
-                    if (*c - 1.0).abs() < 1e-15 {
-                        return a_s;
-                    }
-                }
-                if let (Self::Const(a_c), Self::Const(b_c)) = (&a_s, &b_s) {
-                    if b_c.abs() > 1e-15 {
-                        return Self::Const(a_c / b_c);
-                    }
-                }
-                Self::Div(Box::new(a_s), Box::new(b_s))
-            }
-            Self::Exp(a) => {
-                let a_s = a.simplify();
-                if let Self::Const(c) = &a_s {
-                    if c.abs() < 1e-15 {
-                        return Self::Const(1.0); // exp(0) = 1
-                    }
-                }
-                // exp(ln(x)) = x
-                if let Self::Ln(inner) = &a_s {
-                    return *inner.clone();
-                }
-                Self::Exp(Box::new(a_s))
-            }
-            Self::Ln(a) => {
-                let a_s = a.simplify();
-                if let Self::Const(c) = &a_s {
-                    if (*c - 1.0).abs() < 1e-15 {
-                        return Self::Const(0.0); // ln(1) = 0
-                    }
-                }
-                // ln(exp(x)) = x
-                if let Self::Exp(inner) = &a_s {
-                    return *inner.clone();
-                }
-                Self::Ln(Box::new(a_s))
-            }
-            Self::Neg(a) => {
-                let a_s = a.simplify();
-                if let Self::Const(c) = &a_s {
-                    return Self::Const(-c);
-                }
-                // neg(neg(x)) = x
-                if let Self::Neg(inner) = &a_s {
-                    return *inner.clone();
-                }
-                Self::Neg(Box::new(a_s))
-            }
-            Self::Pow(a, b) => {
-                let a_s = a.simplify();
-                let b_s = b.simplify();
-                // x^0 = 1
-                if let Self::Const(c) = &b_s {
-                    if c.abs() < 1e-15 {
-                        return Self::Const(1.0);
-                    }
-                    // x^1 = x
-                    if (*c - 1.0).abs() < 1e-15 {
-                        return a_s;
-                    }
-                }
-                if let (Self::Const(a_c), Self::Const(b_c)) = (&a_s, &b_s) {
-                    return Self::Const(a_c.powf(*b_c));
-                }
-                Self::Pow(Box::new(a_s), Box::new(b_s))
-            }
-            Self::Sin(a) => Self::Sin(Box::new(a.simplify())),
-            Self::Cos(a) => Self::Cos(Box::new(a.simplify())),
-            Self::Const(_) | Self::Var(_) => self.clone(),
+            Self::Tan(a) => a.eval(vars).tan(),
+            Self::Sinh(a) => a.eval(vars).sinh(),
+            Self::Cosh(a) => a.eval(vars).cosh(),
+            Self::Tanh(a) => a.eval(vars).tanh(),
+            Self::Arcsin(a) => a.eval(vars).asin(),
+            Self::Arccos(a) => a.eval(vars).acos(),
+            Self::Arctan(a) => a.eval(vars).atan(),
+            Self::Arcsinh(a) => a.eval(vars).asinh(),
+            Self::Arccosh(a) => a.eval(vars).acosh(),
+            Self::Arctanh(a) => a.eval(vars).atanh(),
         }
     }
 }
@@ -616,6 +932,7 @@ impl LoweredOp {
 impl fmt::Display for LoweredOp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::NamedConst(nc) => write!(f, "{}", nc.to_pretty()),
             Self::Const(c) => {
                 if (*c - std::f64::consts::E).abs() < 1e-15 {
                     write!(f, "e")
@@ -638,6 +955,16 @@ impl fmt::Display for LoweredOp {
             Self::Cos(a) => write!(f, "cos({a})"),
             Self::Pow(a, b) => write!(f, "({a})^({b})"),
             Self::Neg(a) => write!(f, "-{a}"),
+            Self::Tan(a) => write!(f, "tan({a})"),
+            Self::Sinh(a) => write!(f, "sinh({a})"),
+            Self::Cosh(a) => write!(f, "cosh({a})"),
+            Self::Tanh(a) => write!(f, "tanh({a})"),
+            Self::Arcsin(a) => write!(f, "arcsin({a})"),
+            Self::Arccos(a) => write!(f, "arccos({a})"),
+            Self::Arctan(a) => write!(f, "arctan({a})"),
+            Self::Arcsinh(a) => write!(f, "arcsinh({a})"),
+            Self::Arccosh(a) => write!(f, "arccosh({a})"),
+            Self::Arctanh(a) => write!(f, "arctanh({a})"),
         }
     }
 }
@@ -824,5 +1151,83 @@ mod tests {
             h2.finish(),
             "identical trees should have the same structural hash"
         );
+    }
+
+    #[test]
+    fn latex_var() {
+        assert_eq!(LoweredOp::Var(0).to_latex(), "x_{0}");
+        assert_eq!(LoweredOp::Var(3).to_latex(), "x_{3}");
+    }
+
+    #[test]
+    fn latex_const_pi() {
+        assert_eq!(LoweredOp::Const(std::f64::consts::PI).to_latex(), r"\pi");
+    }
+
+    #[test]
+    fn latex_const_e() {
+        assert_eq!(LoweredOp::Const(std::f64::consts::E).to_latex(), "e");
+    }
+
+    #[test]
+    fn latex_const_integer() {
+        assert_eq!(LoweredOp::Const(2.0).to_latex(), "2");
+        assert_eq!(LoweredOp::Const(-1.0).to_latex(), "-1");
+    }
+
+    #[test]
+    fn latex_div() {
+        let op = LoweredOp::Div(Box::new(LoweredOp::Const(1.0)), Box::new(LoweredOp::Var(0)));
+        assert_eq!(op.to_latex(), r"\frac{1}{x_{0}}");
+    }
+
+    #[test]
+    fn latex_exp() {
+        let op = LoweredOp::Exp(Box::new(LoweredOp::Var(0)));
+        assert_eq!(op.to_latex(), r"e^{x_{0}}");
+    }
+
+    #[test]
+    fn latex_ln() {
+        let op = LoweredOp::Ln(Box::new(LoweredOp::Var(0)));
+        assert_eq!(op.to_latex(), r"\ln\left(x_{0}\right)");
+    }
+
+    #[test]
+    fn latex_sin_cos() {
+        let op = LoweredOp::Sin(Box::new(LoweredOp::Var(0)));
+        assert_eq!(op.to_latex(), r"\sin\left(x_{0}\right)");
+        let op2 = LoweredOp::Cos(Box::new(LoweredOp::Var(0)));
+        assert_eq!(op2.to_latex(), r"\cos\left(x_{0}\right)");
+    }
+
+    #[test]
+    fn latex_pow() {
+        let op = LoweredOp::Pow(Box::new(LoweredOp::Var(0)), Box::new(LoweredOp::Const(2.0)));
+        assert_eq!(op.to_latex(), "x_{0}^{2}");
+    }
+
+    #[test]
+    fn latex_neg() {
+        let op = LoweredOp::Neg(Box::new(LoweredOp::Var(0)));
+        assert_eq!(op.to_latex(), "-x_{0}");
+    }
+
+    #[test]
+    fn latex_mul() {
+        let op = LoweredOp::Mul(Box::new(LoweredOp::Const(2.0)), Box::new(LoweredOp::Var(0)));
+        assert_eq!(op.to_latex(), r"2 \cdot x_{0}");
+    }
+
+    #[test]
+    fn latex_composite() {
+        let op = LoweredOp::Div(
+            Box::new(LoweredOp::Sin(Box::new(LoweredOp::Var(0)))),
+            Box::new(LoweredOp::Cos(Box::new(LoweredOp::Var(0)))),
+        );
+        let latex = op.to_latex();
+        assert!(latex.contains(r"\frac"));
+        assert!(latex.contains(r"\sin"));
+        assert!(latex.contains(r"\cos"));
     }
 }

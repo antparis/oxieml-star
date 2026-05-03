@@ -63,6 +63,49 @@ impl ParameterizedEmlTree {
         }
     }
 
+    /// Forward pass returning both the output and the raw parameter Jacobian.
+    ///
+    /// Returns `(output, d_output/d_param_i)` without any loss coupling.
+    /// The caller is responsible for multiplying through by the loss gradient
+    /// factor. This enables non-MSE losses (Huber, TrimmedMse) to reuse the
+    /// same back-propagation without duplicating the tape machinery.
+    pub fn forward_with_jacobian(&self, ctx: &EvalCtx) -> Result<(f64, Vec<f64>), EmlError> {
+        let (tape, values) = self.build_tape_and_forward(ctx)?;
+
+        let output = values.last().copied().unwrap_or(Complex64::new(0.0, 0.0));
+        if output.im.abs() >= 1e-12 {
+            return Err(EmlError::ComplexResult(output.im.abs()));
+        }
+
+        let output_re = output.re;
+
+        // Backward pass: seed with d(output)/d(output) = 1.0
+        let n = tape.len();
+        let mut grad_values = vec![Complex64::new(0.0, 0.0); n];
+        grad_values[n - 1] = Complex64::new(1.0, 0.0);
+
+        for i in (0..n).rev() {
+            let g = grad_values[i];
+            if let TapeEntry::Eml(left_idx, right_idx) = &tape[i] {
+                let left_val = values[*left_idx];
+                let right_val = values[*right_idx];
+                let d_left = clamped_exp(left_val);
+                let d_right = -Complex64::new(1.0, 0.0) / right_val;
+                grad_values[*left_idx] += g * d_left;
+                grad_values[*right_idx] += g * d_right;
+            }
+        }
+
+        let mut param_jac = Vec::with_capacity(self.params.len());
+        for (i, entry) in tape.iter().enumerate() {
+            if let TapeEntry::Param = entry {
+                param_jac.push(grad_values[i].re);
+            }
+        }
+
+        Ok((output_re, param_jac))
+    }
+
     /// Forward + backward pass.
     ///
     /// Returns `(loss, gradients)` where loss is `(output - target)^2`
@@ -247,7 +290,9 @@ mod tests {
         let ptree = ParameterizedEmlTree::from_topology(&tree, 1.0);
         assert_eq!(ptree.num_params(), 2);
         let ctx = EvalCtx::new(&[]);
-        let result = ptree.forward(&ctx).unwrap();
+        let result = ptree
+            .forward(&ctx)
+            .expect("parameterized forward pass should succeed");
         assert!((result - std::f64::consts::E).abs() < 1e-10);
     }
 
@@ -262,7 +307,9 @@ mod tests {
 
         let ctx = EvalCtx::new(&[1.0]);
         let target = std::f64::consts::E;
-        let (loss, grads) = ptree.forward_backward(&ctx, target).unwrap();
+        let (loss, grads) = ptree
+            .forward_backward(&ctx, target)
+            .expect("forward_backward should succeed");
         // When param = 1.0, eml(x=1, param=1) = exp(1) - ln(1) = e - 0 = e
         // loss = (e - e)^2 = 0
         assert!(loss < 1e-20);
@@ -276,7 +323,9 @@ mod tests {
         let tree = EmlTree::eml(&one, &one);
         let ptree = ParameterizedEmlTree::from_topology(&tree, 1.0);
         let ctx = EvalCtx::new(&[]);
-        let (loss, grads) = ptree.forward_backward(&ctx, 3.0).unwrap();
+        let (loss, grads) = ptree
+            .forward_backward(&ctx, 3.0)
+            .expect("gradient computation should succeed");
         assert!(loss > 0.0);
         assert!(grads.iter().any(|g| g.abs() > 1e-10));
     }
