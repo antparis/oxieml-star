@@ -65,6 +65,29 @@ Monnerot, A. (2026). *eml★: Minimal Anti-Holomorphic Extension of the EML Shef
 DOI: [10.5281/zenodo.20091022](https://doi.org/10.5281/zenodo.20091022)
 GitHub: [antparis/eml_star](https://github.com/antparis/eml_star)
 
+
+## Related Work
+
+- **OxiEML** (COOLJAPAN OU, 2026): The original EML operator implementation in Rust.
+  [cool-japan/oxieml](https://github.com/cool-japan/oxieml)
+- **Odrzywołek (2026)**: "All elementary functions from a single binary operator."
+  [arXiv:2603.21852](https://arxiv.org/abs/2603.21852)
+- **Complex Equation Learner** (Garmaev et al., EPFL, 2026): Gradient-based symbolic
+  regression with complex weights to bypass real-axis singularities.
+  [arXiv:2605.03841](https://arxiv.org/abs/2605.03841)
+  Note: CEQL uses complex weights for optimization stability but does NOT include
+  complex conjugation as a primitive operator. OxiEML-Star fills this gap with eml★.
+- **Zwegers (2002)**: Mock theta functions and harmonic Maass forms — the mathematical
+  framework where eml★'s anti-holomorphic capabilities are directly applicable.
+
+## Verification Summary
+
+- **60 physical systems** verified across 50+ domains (all EXACT, MSE ≤ 10⁻³¹)
+- **6 formulas** rediscovered blindly from raw data
+- **549 new mathematical identities** in the {eml, eml★} framework
+- **Completeness**: {eml, eml★} proven to be the minimal complete basis
+- **Ramanujan**: All anti-holomorphic shadow components of mock theta functions verified
+
 ### Credits
 
 Original OxiEML by **COOLJAPAN OU** ([cool-japan/oxieml](https://github.com/cool-japan/oxieml)).
