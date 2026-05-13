@@ -550,6 +550,43 @@ OxiEML is part of the **COOLJAPAN Pure Rust Ecosystem** — one of the largest p
 
 Full project list & latest releases → [cooljapan.tech](https://cooljapan.tech/) · [GitHub](https://github.com/cool-japan)
 
+
+## Python Wrapper (no Rust needed)
+
+A pure Python implementation is included for users who don't want to compile Rust.
+Requires only numpy and deap.
+
+    pip install numpy deap
+
+### Basic usage
+
+    from oxieml_star import eml, eml_star, conj_eml, mod_squared, real_part
+
+    z = 1.0 + 0.5j
+    print(conj_eml(z))       # (1-0.5j) exact via Theorem 3.1
+    print(mod_squared(z))     # 1.25
+    print(real_part(z))       # 1.0
+
+### Discover formulas from data (GP)
+
+    from discover_gp import run_gp
+    import numpy as np
+
+    z = np.array([1+0.5j, 2-1j, 0.5+2j, -1+0.3j, 3-0.7j])
+    targets = np.conj(z)
+    results = run_gp(z, targets, pop=300, gen=40, runs=5)
+
+### Discover formulas from CSV
+
+    python3 discover_gp.py --csv data.csv --pop 300 --gen 40 --runs 10
+
+CSV format: z_real, z_imag, target_real, target_imag
+
+The GP engine uses eml, eml-star, conj_eml, add, mul as primitives
+and discovers closed-form complex-valued formulas automatically.
+
+Paper: Monnerot (2026) https://doi.org/10.5281/zenodo.20091022
+
 ## Sponsorship
 
 OxiEML is developed and maintained by **COOLJAPAN OU (Team Kitasan)**.
