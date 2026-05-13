@@ -13,9 +13,12 @@ enum Node {
     Zero,
     One,
     Var(usize),
+    Half,
     Eml(Arc<Node>, Arc<Node>),
     EmlStar(Arc<Node>, Arc<Node>),
     ConjEml(Arc<Node>),
+    RealEml(Arc<Node>),
+    ImagEml(Arc<Node>),
     Add(Arc<Node>, Arc<Node>),
     Mul(Arc<Node>, Arc<Node>),
 }
@@ -25,6 +28,7 @@ impl Node {
         match self {
             Node::Zero => Some(Complex64::new(0.0, 0.0)),
             Node::One => Some(Complex64::new(1.0, 0.0)),
+            Node::Half => Some(Complex64::new(0.5, 0.0)),
             Node::Var(i) => vars.get(*i).copied(),
             Node::Eml(l, r) => {
                 let vl = l.eval(vars)?;
@@ -53,6 +57,32 @@ impl Node {
                 let result = Complex64::new(1.0, 0.0) - star;
                 if result.re.is_finite() && result.im.is_finite() { Some(result) } else { None }
             }
+            Node::RealEml(child) => {
+                let z = child.eval(vars)?;
+                let cz = Node::ConjEml(Arc::new(Node::Zero)).eval(vars);
+                // Re(z) = (z + conj(z)) / 2
+                let conj_z = {
+                    let inner = Complex64::new(z.re.clamp(-709.0, 709.0), z.im).exp();
+                    let ic = inner.conj();
+                    let ic_s = if ic.norm() < 1e-30 { Complex64::new(1e-30, 0.0) } else { ic };
+                    let star = Complex64::new(0.0, 0.0).exp() - ic_s.ln();
+                    Complex64::new(1.0, 0.0) - star
+                };
+                let result = (z + conj_z) * Complex64::new(0.5, 0.0);
+                if result.re.is_finite() && result.im.is_finite() { Some(result) } else { None }
+            }
+            Node::ImagEml(child) => {
+                let z = child.eval(vars)?;
+                let conj_z = {
+                    let inner = Complex64::new(z.re.clamp(-709.0, 709.0), z.im).exp();
+                    let ic = inner.conj();
+                    let ic_s = if ic.norm() < 1e-30 { Complex64::new(1e-30, 0.0) } else { ic };
+                    let star = Complex64::new(0.0, 0.0).exp() - ic_s.ln();
+                    Complex64::new(1.0, 0.0) - star
+                };
+                let result = (z - conj_z) * Complex64::new(0.0, -0.5);
+                if result.re.is_finite() && result.im.is_finite() { Some(result) } else { None }
+            }
             Node::Add(l, r) => {
                 let vl = l.eval(vars)?;
                 let vr = r.eval(vars)?;
@@ -70,8 +100,8 @@ impl Node {
 
     fn size(&self) -> usize {
         match self {
-            Node::Zero | Node::One | Node::Var(_) => 1,
-            Node::ConjEml(c) => 1 + c.size(),
+            Node::Zero | Node::One | Node::Half | Node::Var(_) => 1,
+            Node::ConjEml(c) | Node::RealEml(c) | Node::ImagEml(c) => 1 + c.size(),
             Node::Eml(l, r) | Node::EmlStar(l, r) | Node::Add(l, r) | Node::Mul(l, r) => {
                 1 + l.size() + r.size()
             }
@@ -80,8 +110,8 @@ impl Node {
 
     fn has_star(&self) -> bool {
         match self {
-            Node::Zero | Node::One | Node::Var(_) => false,
-            Node::EmlStar(..) | Node::ConjEml(_) => true,
+            Node::Zero | Node::One | Node::Half | Node::Var(_) => false,
+            Node::EmlStar(..) | Node::ConjEml(_) | Node::RealEml(_) | Node::ImagEml(_) => true,
             Node::Eml(l, r) | Node::Add(l, r) | Node::Mul(l, r) => l.has_star() || r.has_star(),
         }
     }
@@ -90,10 +120,13 @@ impl Node {
         match self {
             Node::Zero => "0".into(),
             Node::One => "1".into(),
+            Node::Half => "0.5".into(),
             Node::Var(i) => format!("x{}", i),
             Node::Eml(l, r) => format!("eml({}, {})", l.fmt_str(), r.fmt_str()),
             Node::EmlStar(l, r) => format!("eml_star({}, {})", l.fmt_str(), r.fmt_str()),
             Node::ConjEml(c) => format!("conj_eml({})", c.fmt_str()),
+            Node::RealEml(c) => format!("real_eml({})", c.fmt_str()),
+            Node::ImagEml(c) => format!("imag_eml({})", c.fmt_str()),
             Node::Add(l, r) => format!("add({}, {})", l.fmt_str(), r.fmt_str()),
             Node::Mul(l, r) => format!("mul({}, {})", l.fmt_str(), r.fmt_str()),
         }
@@ -105,6 +138,7 @@ fn enumerate(max_depth: usize) -> Vec<Arc<Node>> {
         Arc::new(Node::Zero),
         Arc::new(Node::One),
         Arc::new(Node::Var(0)),
+        Arc::new(Node::Half),
     ];
 
     let mut by_depth: Vec<Vec<Arc<Node>>> = vec![leaves.clone()];
@@ -122,6 +156,8 @@ fn enumerate(max_depth: usize) -> Vec<Arc<Node>> {
         // Unary: conj_eml on previous depth
         for t in prev {
             trees.push(Arc::new(Node::ConjEml(t.clone())));
+            trees.push(Arc::new(Node::RealEml(t.clone())));
+            trees.push(Arc::new(Node::ImagEml(t.clone())));
         }
 
         // Binary: at least one child at prev depth
@@ -152,7 +188,7 @@ fn enumerate(max_depth: usize) -> Vec<Arc<Node>> {
         }
 
         // Cap per depth
-        if trees.len() > 200_000 {
+        if trees.len() > 100_000 {
             trees.truncate(200_000);
         }
 
@@ -211,7 +247,7 @@ fn main() {
     }
 
     println!("=== OxiEML-Star: Full Discovery Engine ===");
-    println!("Primitives: eml, eml_star, conj_eml, add, mul");
+    println!("Primitives: eml, eml_star, conj_eml, real_eml, imag_eml, add, mul");
     println!("File: {} ({} points)", file_path, data.len());
     println!("Max depth: {}\n", max_depth);
 
