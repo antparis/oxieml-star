@@ -268,7 +268,7 @@ pub struct SymRegConfig {
 impl Default for SymRegConfig {
     fn default() -> Self {
         Self {
-            max_depth: 4,
+            max_depth: 3,
             learning_rate: 1e-3,
             tolerance: 1e-10,
             max_iter: 10_000,
@@ -594,6 +594,16 @@ impl SymRegEngine {
 
         // Phase 1: Enumerate all topologies up to max_depth
         let topologies = enumerate_topologies(self.config.max_depth, num_vars);
+        let original_count = topologies.len();
+        let topologies: Vec<_> = if original_count > 100_000 {
+            eprintln!(
+                "Warning: {} topologies generated, capping at 100,000. Use --max-depth to adjust.",
+                original_count
+            );
+            topologies.into_iter().take(100_000).collect()
+        } else {
+            topologies
+        };
 
         // Phase 1b: Prune semantically-equivalent topologies
         // (EML-default lowering is nearly injective, so only a small fraction
