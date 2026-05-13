@@ -1,3 +1,0 @@
-MSE=1.1648e-32  eml_star=True  mul(conj_eml(z), one)
-MSE=1.1648e-32  eml_star=True  conj_eml(add(mul(zero, add(zero, zero)), z))
-MSE=1.1648e-32  eml_star=True  add(zero, conj_eml(z))
