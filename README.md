@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20152989.svg)](https://doi.org/10.5281/zenodo.20152989)
+
 # OxiEML-Star
 
 **All elementary functions from a single binary operator — now with anti-holomorphic support.**
