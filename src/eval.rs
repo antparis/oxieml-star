@@ -86,6 +86,9 @@ impl EmlTree {
                 Instruction::PushOne => {
                     stack.push(Complex64::new(1.0, 0.0));
                 }
+                Instruction::Zero => {
+                    stack.push(Complex64::new(0.0, 0.0));
+                }
                 Instruction::PushVar(idx) => {
                     let idx = *idx;
                     if idx >= vars.len() {
@@ -150,6 +153,7 @@ enum Instruction {
     Eml,
     /// eml★ instruction (Monnerot 2026): exp(left) - ln(conj(right))
     EmlStar,
+    Zero,
 }
 
 /// Evaluate a single data point using a pre-built instruction list.
@@ -162,6 +166,9 @@ fn eval_point(instructions: &[Instruction], point: &[f64]) -> Result<f64, EmlErr
         match inst {
             Instruction::PushOne => {
                 stack.push(Complex64::new(1.0, 0.0));
+            }
+            Instruction::Zero => {
+                stack.push(Complex64::new(0.0, 0.0));
             }
             Instruction::PushVar(idx) => {
                 let idx = *idx;
@@ -200,6 +207,7 @@ fn eval_point(instructions: &[Instruction], point: &[f64]) -> Result<f64, EmlErr
 fn flatten_postorder(node: &EmlNode, out: &mut Vec<Instruction>) {
     match node {
         EmlNode::One => out.push(Instruction::PushOne),
+        EmlNode::Zero => out.push(Instruction::Zero),
         EmlNode::Var(idx) => out.push(Instruction::PushVar(*idx)),
         EmlNode::Eml { left, right } => {
             flatten_postorder(left, out);

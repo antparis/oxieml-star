@@ -235,6 +235,7 @@ pub fn to_compact_string(tree: &EmlTree) -> String {
 fn node_to_compact(node: &EmlNode) -> String {
     match node {
         EmlNode::One => "1".to_string(),
+        EmlNode::Zero => "0".to_string(),
         EmlNode::Var(i) => format!("x{i}"),
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             format!("E({},{})", node_to_compact(left), node_to_compact(right))

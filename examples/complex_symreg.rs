@@ -16,6 +16,7 @@ use oxieml::symreg::enumerate_topologies;
 fn eval_complex(node: &EmlNode, vars: &[Complex64]) -> Option<Complex64> {
     match node {
         EmlNode::One => Some(Complex64::new(1.0, 0.0)),
+        EmlNode::Zero => Some(Complex64::new(0.0, 0.0)),
         EmlNode::Var(i) => vars.get(*i).copied(),
         EmlNode::Eml { left, right } => {
             let vl = eval_complex(left, vars)?;
@@ -89,7 +90,7 @@ fn complex_mse(tree: &EmlTree, data: &[(Vec<Complex64>, Complex64)]) -> f64 {
 /// Check if a tree contains any EmlStar nodes.
 fn has_eml_star(node: &EmlNode) -> bool {
     match node {
-        EmlNode::One | EmlNode::Var(_) => false,
+        EmlNode::One | EmlNode::Zero | EmlNode::Var(_) => false,
         EmlNode::EmlStar { .. } => true,
         EmlNode::Eml { left, right } => has_eml_star(left) || has_eml_star(right),
     }

@@ -672,6 +672,10 @@ fn encode_tree(
             let one = float_to_term(tm, 1.0)?;
             Some((one, Interval::new(1.0, 1.0)))
         }
+        EmlNode::Zero => {
+            let zero = float_to_term(tm, 0.0)?;
+            Some((zero, Interval::new(0.0, 0.0)))
+        }
         EmlNode::Var(i) => {
             let iv = *domain.vars.get(*i)?;
             let term = *var_terms.get(*i)?;

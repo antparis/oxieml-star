@@ -16,6 +16,8 @@ use std::sync::Arc;
 pub enum EmlNode {
     /// Constant 1 (the only constant in the paper's grammar).
     One,
+    /// The constant zero.
+    Zero,
 
     /// Input variable referenced by index: x0, x1, ...
     Var(usize),
@@ -140,6 +142,8 @@ impl fmt::Display for EmlNode {
 fn write_node(node: &EmlNode, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match node {
         EmlNode::One => write!(f, "1"),
+        EmlNode::Zero => write!(f, "0"),
+            EmlNode::Zero => write!(f, "0"),
         EmlNode::Var(i) => write!(f, "x{i}"),
         EmlNode::Eml { left, right } => {
             write!(f, "eml(")?;
@@ -191,14 +195,14 @@ fn collect_postorder<'a>(node: &'a EmlNode, out: &mut Vec<&'a EmlNode>) {
             collect_postorder(left, out);
             collect_postorder(right, out);
         }
-        EmlNode::One | EmlNode::Var(_) => {}
+        EmlNode::One | EmlNode::Zero | EmlNode::Var(_) => {}
     }
     out.push(node);
 }
 
 fn node_depth(node: &EmlNode) -> usize {
     match node {
-        EmlNode::One | EmlNode::Var(_) => 0,
+        EmlNode::One | EmlNode::Zero | EmlNode::Var(_) => 0,
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             1 + node_depth(left).max(node_depth(right))
         }
@@ -207,7 +211,7 @@ fn node_depth(node: &EmlNode) -> usize {
 
 fn node_size(node: &EmlNode) -> usize {
     match node {
-        EmlNode::One | EmlNode::Var(_) => 1,
+        EmlNode::One | EmlNode::Zero | EmlNode::Var(_) => 1,
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             1 + node_size(left) + node_size(right)
         }
@@ -217,6 +221,7 @@ fn node_size(node: &EmlNode) -> usize {
 fn count_vars(node: &EmlNode) -> usize {
     match node {
         EmlNode::One => 0,
+        EmlNode::Zero => 0,
         EmlNode::Var(i) => i + 1,
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             count_vars(left).max(count_vars(right))

@@ -178,6 +178,7 @@ impl EmlTree {
 fn lower_node(node: &EmlNode) -> LoweredOp {
     match node {
         EmlNode::One => LoweredOp::Const(1.0),
+        EmlNode::Zero => LoweredOp::Const(0.0),
         EmlNode::Var(i) => LoweredOp::Var(*i),
         EmlNode::EmlStar { left, right } => {
             let ll = lower_node(left);

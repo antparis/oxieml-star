@@ -36,6 +36,7 @@ struct EmlNodeKey2(Box<EmlNodeKey>);
 fn make_key(node: &EmlNode) -> EmlNodeKey {
     match node {
         EmlNode::One => EmlNodeKey::One,
+        EmlNode::Zero => EmlNodeKey::One,
         EmlNode::Var(i) => EmlNodeKey::Var(*i),
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => EmlNodeKey::Eml(
             EmlNodeKey2(Box::new(make_key(left))),
@@ -51,7 +52,7 @@ fn simplify_node(node: &EmlNode, cache: &mut HashMap<EmlNodeKey, Arc<EmlNode>>) 
     }
 
     let result = match node {
-        EmlNode::One | EmlNode::Var(_) => Arc::new(node.clone()),
+        EmlNode::One | EmlNode::Zero | EmlNode::Var(_) => Arc::new(node.clone()),
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             let left_s = simplify_node(left, cache);
             let right_s = simplify_node(right, cache);

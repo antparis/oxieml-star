@@ -187,7 +187,7 @@ impl ParameterizedEmlTree {
         param_idx: &mut usize,
     ) -> Result<usize, EmlError> {
         match node {
-            EmlNode::One => {
+            EmlNode::One | EmlNode::Zero => {
                 let idx = tape.len();
                 let p = self.params[*param_idx];
                 *param_idx += 1;
@@ -225,6 +225,7 @@ impl ParameterizedEmlTree {
 fn count_ones(node: &EmlNode) -> usize {
     match node {
         EmlNode::One => 1,
+        EmlNode::Zero => 0,
         EmlNode::Var(_) => 0,
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => count_ones(left) + count_ones(right),
     }
@@ -262,7 +263,7 @@ pub fn reconstruct_tree(ptree: &ParameterizedEmlTree) -> EmlTree {
 
 fn reconstruct_node(node: &EmlNode, params: &[f64], param_idx: &mut usize) -> Arc<EmlNode> {
     match node {
-        EmlNode::One => {
+        EmlNode::One | EmlNode::Zero => {
             let _p = params[*param_idx];
             *param_idx += 1;
             // Keep as One — the parameter was used during optimization

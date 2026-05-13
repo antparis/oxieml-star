@@ -24,6 +24,10 @@ pub fn enumerate_topologies(max_depth: usize, num_vars: usize) -> Vec<EmlTree> {
 
     for depth in 0..=max_depth {
         enumerate_at_depth(depth, &leaves, &mut topologies);
+        if topologies.len() > 200_000 {
+            topologies.truncate(200_000);
+            break;
+        }
     }
 
     topologies
@@ -50,7 +54,7 @@ pub fn dedupe_by_semantics(topologies: Vec<EmlTree>) -> Vec<EmlTree> {
 
 /// Build leaf nodes: One and Var(0), Var(1), ...
 pub(super) fn build_leaves(num_vars: usize) -> Vec<Arc<EmlNode>> {
-    let mut leaves = vec![Arc::new(EmlNode::One)];
+    let mut leaves = vec![Arc::new(EmlNode::One), Arc::new(EmlNode::Zero)];
     for i in 0..num_vars {
         leaves.push(Arc::new(EmlNode::Var(i)));
     }

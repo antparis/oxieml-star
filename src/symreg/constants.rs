@@ -59,7 +59,7 @@ pub(super) fn bake_params_into_lowered(topology: &EmlTree, params: &[f64]) -> Lo
     ) -> std::sync::Arc<crate::tree::EmlNode> {
         use crate::tree::EmlNode;
         match node {
-            EmlNode::One => {
+            EmlNode::One | EmlNode::Zero => {
                 // Replace One with Var(MAX-1) as a sentinel carrying the param value.
                 // Since EmlNode has no Const variant, we keep One but track the mapping.
                 // The substitution happens post-lowering via replace_const_one below.
