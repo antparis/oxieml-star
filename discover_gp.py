@@ -214,21 +214,83 @@ def run_gp(z_data, targets, pop=300, gen=40, runs=10,
 # Quick Test
 # ============================================================
 
+
+# ============================================================
+# CSV Mode — Discover formulas from user data
+# ============================================================
+
+def load_csv(path):
+    """Load complex data from CSV.
+    
+    Expected columns: z_real, z_imag, target_real, target_imag
+    Or: z_real, z_imag, target_real (target_imag assumed 0)
+    """
+    import csv
+    z_list = []
+    t_list = []
+    with open(path, 'r') as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        for row in reader:
+            if len(row) >= 4:
+                z_list.append(float(row[0]) + 1j * float(row[1]))
+                t_list.append(float(row[2]) + 1j * float(row[3]))
+            elif len(row) >= 3:
+                z_list.append(float(row[0]) + 1j * float(row[1]))
+                t_list.append(float(row[2]) + 0j)
+    return np.array(z_list), np.array(t_list)
+
+
 if __name__ == "__main__":
-    print("=" * 60)
-    print("  discover_gp — GP Symbolic Regression with eml★")
-    print("=" * 60)
+    import sys
 
-    # Test: discover conj(z)
-    grid = np.linspace(-2, 2, 15)
-    re, im = np.meshgrid(grid, grid)
-    z = (re + 1j * im).ravel()
-    mask = np.abs(z.imag) < np.pi - 0.1
-    z = z[mask]
-    targets = np.conj(z)
+    if len(sys.argv) > 1 and sys.argv[1] == "--csv":
+        if len(sys.argv) < 3:
+            print("Usage: python3 discover_gp.py --csv data.csv [--pop 300] [--gen 40] [--runs 10]")
+            sys.exit(1)
 
-    print(f"\nTarget: conj(z), {len(z)} points")
-    print(f"Settings: pop=200, gen=30, runs=3, depth<=6\n")
+        csv_path = sys.argv[2]
+        pop = 300
+        gen = 40
+        runs = 10
 
-    results = run_gp(z, targets, pop=200, gen=30, runs=3,
-                     max_depth=6, seed=42)
+        i = 3
+        while i < len(sys.argv) - 1:
+            if sys.argv[i] == "--pop":
+                pop = int(sys.argv[i + 1])
+            elif sys.argv[i] == "--gen":
+                gen = int(sys.argv[i + 1])
+            elif sys.argv[i] == "--runs":
+                runs = int(sys.argv[i + 1])
+            i += 2
+
+        print(f"Loading {csv_path}...")
+        z_data, targets = load_csv(csv_path)
+        print(f"Loaded {len(z_data)} points")
+        print(f"Settings: pop={pop}, gen={gen}, runs={runs}\n")
+
+        results = run_gp(z_data, targets, pop=pop, gen=gen, runs=runs)
+
+        out_path = csv_path.replace(".csv", "_results.txt")
+        with open(out_path, "w") as f:
+            for r in results:
+                f.write(f"MSE={r['mse']:.4e}  eml_star={r['has_eml_star']}  {r['formula']}\n")
+        print(f"\nResults saved to {out_path}")
+
+    else:
+        print("=" * 60)
+        print("  discover_gp — GP Symbolic Regression with eml★")
+        print("=" * 60)
+
+        grid = np.linspace(-2, 2, 15)
+        re, im = np.meshgrid(grid, grid)
+        z = (re + 1j * im).ravel()
+        mask = np.abs(z.imag) < np.pi - 0.1
+        z = z[mask]
+        targets = np.conj(z)
+
+        print(f"\nTarget: conj(z), {len(z)} points")
+        print(f"Settings: pop=200, gen=30, runs=3, depth<=6\n")
+
+        results = run_gp(z, targets, pop=200, gen=30, runs=3,
+                         max_depth=6, seed=42)
