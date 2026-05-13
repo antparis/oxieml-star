@@ -1,6 +1,6 @@
-# OxiEML
+# OxiEML-Star
 
-**All elementary functions from a single binary operator.**
+**All elementary functions from a single binary operator — now with anti-holomorphic support.**
 
 A Pure Rust crate that implements the EML operator `eml(x, y) = exp(x) - ln(y)`
 and builds uniform binary trees expressing **all elementary functions** using only
@@ -28,6 +28,45 @@ University, Institute of Theoretical Physics).
 
 6. **Gradient / Jacobian / Hessian** — Symbolic differentiation on `LoweredOp` with
    `LoweredOp::grad(wrt)`, `grad_all()`, `jacobian(n)`, `hessian(n)`.
+
+## eml★ Extension (Monnerot 2026)
+
+This fork adds the companion operator `eml★(x, y) = exp(x) - ln(conj(y))`,
+which extends the EML grammar to cover **anti-holomorphic** functions.
+
+**Extended grammar:** `S → 1 | eml(S, S) | eml★(S, S)`
+
+Two operators and one constant generate **all** elementary functions — holomorphic
+and anti-holomorphic — including:
+
+- `conj(z)` at depth 2 (Theorem 3.1, valid for Im(z) ∈ [-π, π))
+- `Re(z)`, `Im(z)`, `|z|²`, `|z|`
+- Conformal primary wavefunctions for 2D CFT
+
+This is the **first symbolic regression engine** that natively covers both
+holomorphic and anti-holomorphic function spaces in a unified algebraic framework.
+
+### Canonical constructions
+
+```rust
+use oxieml_star::canonical::Canonical;
+
+let z = EmlTree::var(0);
+let conj_z = Canonical::conj(&z);          // conj(z) at depth 2
+let re_z = Canonical::real_part(&z);       // Re(z) at depth 3
+let mod_sq = Canonical::mod_squared(&z);   // |z|² at depth 3
+```
+
+### Reference
+
+Monnerot, A. (2026). *eml★: Minimal Anti-Holomorphic Extension of the EML Sheffer Operator*.
+DOI: [10.5281/zenodo.20091022](https://doi.org/10.5281/zenodo.20091022)
+GitHub: [antparis/eml_star](https://github.com/antparis/eml_star)
+
+### Credits
+
+Original OxiEML by **COOLJAPAN OU** ([cool-japan/oxieml](https://github.com/cool-japan/oxieml)).
+eml★ extension by **Anthony Monnerot**.
 
 7. **Extended Transcendentals** — `LoweredOp` has `Tan`, `Sinh`, `Cosh`, `Tanh`,
    `Arcsin`, `Arccos`, `Arctan`, `Arcsinh`, `Arccosh`, `Arctanh` with canonical EML
