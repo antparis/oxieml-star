@@ -374,6 +374,30 @@ impl Canonical {
     pub fn zero() -> EmlTree {
         Self::ln(&EmlTree::one())
     }
+
+    /// Theorem 3.1 (Monnerot 2026):
+    /// conj(z) = 1 - eml_star(0, eml(z, 1))
+    /// Valid for Im(z) in [-pi, pi)
+    pub fn conj(z: &EmlTree) -> EmlTree {
+        let zero = Canonical::zero();
+        let one = EmlTree::one();
+        let inner = EmlTree::eml(z, &one);
+        let star = EmlTree::eml_star(&zero, &inner);
+        Canonical::sub(&one, &star)
+    }
+
+    /// Re(z) = (z + conj(z)) / 2
+    pub fn real_part(z: &EmlTree) -> EmlTree {
+        let cz = Canonical::conj(z);
+        let sum = Canonical::add(z, &cz);
+        Canonical::div(&sum, &Canonical::nat(2))
+    }
+
+    /// |z|^2 = z * conj(z)
+    pub fn mod_squared(z: &EmlTree) -> EmlTree {
+        let cz = Canonical::conj(z);
+        Canonical::mul(z, &cz)
+    }
 }
 
 #[cfg(test)]
