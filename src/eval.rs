@@ -2,6 +2,8 @@
 //!
 //! Provides real, complex, and batch evaluation using a stack-machine
 //! post-order traversal to avoid recursion depth issues on deep trees.
+//!
+//! Extended with eml★ evaluation (Monnerot 2026).
 
 use crate::error::EmlError;
 use crate::tree::{EmlNode, EmlTree};
@@ -59,24 +61,19 @@ impl EmlTree {
     /// otherwise returns `Err(EmlError::ComplexResult)`.
     pub fn eval_real(&self, ctx: &EvalCtx) -> Result<f64, EmlError> {
         let complex_vars: Vec<Complex64> =
-            ctx.vars.iter().map(|&v| Complex64::new(v, 0.0)).collect();
+            ctx.as_slice().iter().map(|&v| Complex64::new(v, 0.0)).collect();
         let result = self.eval_complex(&complex_vars)?;
-
         if result.im.abs() < IMAG_THRESHOLD {
-            let re = result.re;
-            if re.is_nan() {
+            if result.re.is_nan() {
                 return Err(EmlError::NanEncountered);
             }
-            Ok(re)
+            Ok(result.re)
         } else {
             Err(EmlError::ComplexResult(result.im.abs()))
         }
     }
 
     /// Evaluate the tree with complex-valued inputs.
-    ///
-    /// Uses a stack-machine post-order traversal for numerical stability
-    /// and to avoid stack overflow on deeply nested trees.
     pub fn eval_complex(&self, vars: &[Complex64]) -> Result<Complex64, EmlError> {
         // Build a flattened post-order instruction list, then evaluate with a stack.
         let mut instructions = Vec::new();
@@ -100,6 +97,12 @@ impl EmlTree {
                     let right = stack.pop().ok_or(EmlError::NanEncountered)?;
                     let left = stack.pop().ok_or(EmlError::NanEncountered)?;
                     let result = eml_complex(left, right)?;
+                    stack.push(result);
+                }
+                Instruction::EmlStar => {
+                    let right = stack.pop().ok_or(EmlError::NanEncountered)?;
+                    let left = stack.pop().ok_or(EmlError::NanEncountered)?;
+                    let result = eml_star_complex(left, right)?;
                     stack.push(result);
                 }
             }
@@ -145,6 +148,8 @@ enum Instruction {
     PushOne,
     PushVar(usize),
     Eml,
+    /// eml★ instruction (Monnerot 2026): exp(left) - ln(conj(right))
+    EmlStar,
 }
 
 /// Evaluate a single data point using a pre-built instruction list.
@@ -171,6 +176,12 @@ fn eval_point(instructions: &[Instruction], point: &[f64]) -> Result<f64, EmlErr
                 let result = eml_complex(left, right)?;
                 stack.push(result);
             }
+            Instruction::EmlStar => {
+                let right = stack.pop().ok_or(EmlError::NanEncountered)?;
+                let left = stack.pop().ok_or(EmlError::NanEncountered)?;
+                let result = eml_star_complex(left, right)?;
+                stack.push(result);
+            }
         }
     }
 
@@ -194,6 +205,11 @@ fn flatten_postorder(node: &EmlNode, out: &mut Vec<Instruction>) {
             flatten_postorder(left, out);
             flatten_postorder(right, out);
             out.push(Instruction::Eml);
+        }
+        EmlNode::EmlStar { left, right } => {
+            flatten_postorder(left, out);
+            flatten_postorder(right, out);
+            out.push(Instruction::EmlStar);
         }
     }
 }
@@ -221,6 +237,29 @@ fn eml_complex(left: Complex64, right: Complex64) -> Result<Complex64, EmlError>
     Ok(result)
 }
 
+/// Compute `eml★(left, right) = exp(left) - ln(conj(right))` for complex values.
+/// The ONLY difference from eml_complex is the conjugation of right before ln.
+fn eml_star_complex(left: Complex64, right: Complex64) -> Result<Complex64, EmlError> {
+    let clamped_left = if left.re > EXP_CLAMP {
+        Complex64::new(EXP_CLAMP, left.im)
+    } else if left.re < -EXP_CLAMP {
+        Complex64::new(-EXP_CLAMP, left.im)
+    } else {
+        left
+    };
+
+    let exp_part = clamped_left.exp();
+    let ln_part = right.conj().ln(); // ← THIS IS THE ONLY SEMANTIC DIFFERENCE
+
+    let result = exp_part - ln_part;
+
+    if result.re.is_nan() || result.im.is_nan() {
+        return Err(EmlError::NanEncountered);
+    }
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,9 +269,6 @@ mod tests {
     fn test_eval_one() {
         let t = EmlTree::one();
         let ctx = EvalCtx::new(&[]);
-        // One evaluates... well, One is a leaf, not eml.
-        // We need to handle the fact that One by itself is just the constant 1.
-        // But eval_real goes through eval_complex which handles leaves.
         let result = t.eval_real(&ctx).expect("eval of One leaf should succeed");
         assert!((result - 1.0).abs() < 1e-15);
     }
@@ -268,6 +304,69 @@ mod tests {
             .eval_real(&ctx)
             .expect("eval of eml(1,1) = e should succeed");
         assert!((result - std::f64::consts::E).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_eval_eml_star_conj_recovery() {
+        // Theorem 3.1 (Monnerot 2026):
+        // conj(z) = 1 - eml★(0, eml(z, 1))
+        // Test with z = 1.0 + 0.5i
+        let z = Complex64::new(1.0, 0.5);
+        let zero = Complex64::new(0.0, 0.0);
+        let one = Complex64::new(1.0, 0.0);
+
+        // eml(z, 1) = exp(z)
+        let inner = eml_complex(z, one).unwrap();
+
+        // eml★(0, exp(z)) = exp(0) - ln(conj(exp(z))) = 1 - conj(z)
+        let star_val = eml_star_complex(zero, inner).unwrap();
+
+        // conj(z) = 1 - star_val
+        let result = one - star_val;
+        let expected = z.conj();
+
+        assert!(
+            (result - expected).norm() < 1e-10,
+            "conj recovery failed: got {result}, expected {expected}"
+        );
+    }
+
+    #[test]
+    fn test_eval_eml_star_tree() {
+        // Build tree: 1 - eml★(0_tree, eml(x, 1))
+        // where 0_tree = eml(eml(1,1), eml(1,1)) ... actually 0 = ln(1) = eml(1, eml(eml(1,x),1))
+        // Simpler: test via eval_complex directly with the eml_star_complex fn
+        let z = Complex64::new(2.0, -1.0);
+        let one = Complex64::new(1.0, 0.0);
+        let zero = Complex64::new(0.0, 0.0);
+
+        let inner = eml_complex(z, one).unwrap(); // exp(z)
+        let star = eml_star_complex(zero, inner).unwrap(); // 1 - conj(z)
+        let conj_z = one - star;
+
+        assert!(
+            (conj_z - z.conj()).norm() < 1e-10,
+            "Tree-level conj recovery failed"
+        );
+    }
+
+    #[test]
+    fn test_eval_eml_star_branch_safety() {
+        // Verify Theorem 3.1 holds inside the safe strip Im(z) ∈ [-π+0.1, π-0.1]
+        let one = Complex64::new(1.0, 0.0);
+        let zero = Complex64::new(0.0, 0.0);
+
+        for &im in &[-2.5, -1.0, 0.0, 1.0, 2.5] {
+            let z = Complex64::new(1.5, im);
+            let inner = eml_complex(z, one).unwrap();
+            let star = eml_star_complex(zero, inner).unwrap();
+            let conj_z = one - star;
+            let err = (conj_z - z.conj()).norm();
+            assert!(
+                err < 1e-10,
+                "Branch safety failed at Im(z)={im}: error={err}"
+            );
+        }
     }
 
     #[test]

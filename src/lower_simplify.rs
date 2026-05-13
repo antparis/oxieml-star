@@ -203,7 +203,7 @@ impl LoweredOp {
                 }
                 Self::Ln(Box::new(a_s))
             }
-            Self::Neg(a) => {
+            Self::Neg(a) | Self::Conj(a) => {
                 let a_s = a.simplify();
                 if let Self::Const(c) = &a_s {
                     return Self::Const(-c);

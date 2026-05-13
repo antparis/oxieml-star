@@ -57,6 +57,7 @@ impl LoweredOp {
             Self::Const(_) | Self::NamedConst(_) => 0,
             Self::Var(i) => i + 1,
             Self::Neg(x)
+            | Self::Conj(x)
             | Self::Exp(x)
             | Self::Ln(x)
             | Self::Sin(x)
@@ -192,7 +193,7 @@ pub(crate) fn raw_grad(op: &LoweredOp, wrt: usize) -> LoweredOp {
                 Box::new(da),
             )))
         }
-        LoweredOp::Neg(a) => LoweredOp::Neg(Box::new(raw_grad(a, wrt))),
+        LoweredOp::Neg(a) | LoweredOp::Conj(a) => LoweredOp::Neg(Box::new(raw_grad(a, wrt))),
         LoweredOp::Pow(base, expo) => {
             // General power rule via exp-log rewriting:
             //   d/dx base^expo

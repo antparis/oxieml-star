@@ -80,6 +80,7 @@ pub enum LoweredOp {
     /// Created only by the constants-extraction pass in [`crate::symreg`];
     /// never emitted by lowering. Constant-folds down to `Const(value())` on
     /// the first `simplify` call that encounters it in a binary/unary context.
+    Conj(Box<LoweredOp>),
     NamedConst(NamedConst),
 }
 
@@ -178,6 +179,14 @@ fn lower_node(node: &EmlNode) -> LoweredOp {
     match node {
         EmlNode::One => LoweredOp::Const(1.0),
         EmlNode::Var(i) => LoweredOp::Var(*i),
+        EmlNode::EmlStar { left, right } => {
+            let ll = lower_node(left);
+            let lr = lower_node(right);
+            LoweredOp::Sub(
+                Box::new(LoweredOp::Exp(Box::new(ll))),
+                Box::new(LoweredOp::Ln(Box::new(LoweredOp::Conj(Box::new(lr))))),
+            )
+        }
         EmlNode::Eml { left, right } => {
             // Try to recognize known patterns before falling back to exp(l) - ln(r).
             // Patterns are checked most-specific first to avoid premature matches.
@@ -484,7 +493,7 @@ impl LoweredOp {
                 b.collect_ops(ops);
                 ops.push(OxiOp::Pow);
             }
-            Self::Neg(a) => {
+            Self::Neg(a) | Self::Conj(a) => {
                 a.collect_ops(ops);
                 ops.push(OxiOp::Neg);
             }
@@ -730,7 +739,7 @@ impl LoweredOp {
                 b.structural_hash(state);
                 10u8.hash(state);
             }
-            Self::Neg(a) => {
+            Self::Neg(a) | Self::Conj(a) => {
                 a.structural_hash(state);
                 11u8.hash(state);
             }
@@ -860,7 +869,7 @@ impl LoweredOp {
                     let e = render(exp, true);
                     format!("{b}^{{{e}}}")
                 }
-                LoweredOp::Neg(a) => {
+                LoweredOp::Neg(a) | LoweredOp::Conj(a) => {
                     let inner = render(a, false);
                     format!("-{inner}")
                 }
@@ -914,7 +923,7 @@ impl LoweredOp {
             Self::Sin(a) => a.eval(vars).sin(),
             Self::Cos(a) => a.eval(vars).cos(),
             Self::Pow(a, b) => a.eval(vars).powf(b.eval(vars)),
-            Self::Neg(a) => -a.eval(vars),
+            Self::Neg(a) | Self::Conj(a) => -a.eval(vars),
             Self::Tan(a) => a.eval(vars).tan(),
             Self::Sinh(a) => a.eval(vars).sinh(),
             Self::Cosh(a) => a.eval(vars).cosh(),
@@ -954,7 +963,7 @@ impl fmt::Display for LoweredOp {
             Self::Sin(a) => write!(f, "sin({a})"),
             Self::Cos(a) => write!(f, "cos({a})"),
             Self::Pow(a, b) => write!(f, "({a})^({b})"),
-            Self::Neg(a) => write!(f, "-{a}"),
+            Self::Neg(a) | Self::Conj(a) => write!(f, "-{a}"),
             Self::Tan(a) => write!(f, "tan({a})"),
             Self::Sinh(a) => write!(f, "sinh({a})"),
             Self::Cosh(a) => write!(f, "cosh({a})"),

@@ -134,8 +134,14 @@ impl<'a> Parser<'a> {
             return self.parse_var();
         }
 
+        // "E*" or "eml_star" → EmlStar call (Monnerot 2026)
         // "E" or "eml" → Eml call
         if ch == b'E' {
+            // E*(...) check first
+            if self.pos + 2 < self.bytes.len() && self.bytes[self.pos + 1] == b'*' && self.bytes[self.pos + 2] == b'(' {
+                self.pos += 2; // skip "E*"
+                return self.parse_eml_star_body();
+            }
             // Could be "E(" or "eml("
             if self.pos + 1 < self.bytes.len() && self.bytes[self.pos + 1] == b'(' {
                 // E(...)
@@ -153,6 +159,10 @@ impl<'a> Parser<'a> {
         }
 
         if ch == b'e' {
+            if self.matches_ahead("eml_star") {
+                self.pos += 8; // skip "eml_star"
+                return self.parse_eml_star_body();
+            }
             if self.matches_ahead("eml") {
                 self.pos += 3;
                 return self.parse_eml_body();
@@ -176,6 +186,15 @@ impl<'a> Parser<'a> {
         let right = self.parse_expr()?;
         self.expect(b')')?;
         Ok(Arc::new(EmlNode::Eml { left, right }))
+    }
+
+    fn parse_eml_star_body(&mut self) -> Result<Arc<EmlNode>, ParseError> {
+        self.expect(b"("[0])?;
+        let left = self.parse_expr()?;
+        self.expect(b","[0])?;
+        let right = self.parse_expr()?;
+        self.expect(b")"[0])?;
+        Ok(Arc::new(EmlNode::EmlStar { left, right }))
     }
 
     fn parse_var(&mut self) -> Result<Arc<EmlNode>, ParseError> {
@@ -217,7 +236,7 @@ fn node_to_compact(node: &EmlNode) -> String {
     match node {
         EmlNode::One => "1".to_string(),
         EmlNode::Var(i) => format!("x{i}"),
-        EmlNode::Eml { left, right } => {
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             format!("E({},{})", node_to_compact(left), node_to_compact(right))
         }
     }

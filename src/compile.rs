@@ -163,7 +163,7 @@ fn emit_rust_expr(op: &LoweredOp) -> String {
         LoweredOp::Pow(a, b) => {
             format!("({}).powf({})", emit_rust_expr(a), emit_rust_expr(b))
         }
-        LoweredOp::Neg(a) => {
+        LoweredOp::Neg(a) | LoweredOp::Conj(a) => {
             format!("(-({}))", emit_rust_expr(a))
         }
         LoweredOp::Tan(a) => {

@@ -5,6 +5,8 @@
 //! - Topology deduplication via structural hashing
 //! - MSE computation helpers for topology evaluation
 //! - Interval-feasibility pre-filter for pruning
+//!
+//! Extended with EmlStar topologies (Monnerot 2026).
 
 use std::sync::Arc;
 
@@ -15,6 +17,7 @@ use crate::tree::{EmlNode, EmlTree};
 /// Enumerate all EML tree topologies up to given depth with given number of variables.
 ///
 /// Follows the Catalan-number-based enumeration of binary trees.
+/// Now also enumerates EmlStar topologies (Monnerot 2026).
 pub fn enumerate_topologies(max_depth: usize, num_vars: usize) -> Vec<EmlTree> {
     let mut topologies = Vec::new();
     let leaves = build_leaves(num_vars);
@@ -27,20 +30,6 @@ pub fn enumerate_topologies(max_depth: usize, num_vars: usize) -> Vec<EmlTree> {
 }
 
 /// Deduplicate topologies that lower+simplify to the same structural form.
-///
-/// Many EML topologies are semantically equivalent (commutative/associative
-/// reorderings, algebraic identities like `exp(ln(x)) = x`). We apply
-/// EML-level simplification first (to collapse patterns like `ln(exp(x))`
-/// and `exp(ln(x))` directly on the tree), then lower to a conventional
-/// op tree and run the arithmetic simplifier. We compute a structural
-/// hash over the resulting `LoweredOp` and keep the first representative
-/// of each hash bucket.
-///
-/// Note: EML is non-commutative and non-associative, so tree rearrangements
-/// generally produce genuinely distinct functions. Structural dedup thus
-/// catches only the cases where simplification rules collapse different
-/// trees to identical forms. Deeper reduction would require evaluation-based
-/// fingerprinting, which is out of scope here.
 pub fn dedupe_by_semantics(topologies: Vec<EmlTree>) -> Vec<EmlTree> {
     use std::collections::HashSet;
     use std::collections::hash_map::DefaultHasher;
@@ -75,6 +64,8 @@ pub(super) fn build_leaves(num_vars: usize) -> Vec<Arc<EmlNode>> {
 /// 1. Both children at exactly depth `d-1`
 /// 2. Left at depth `d-1`, right at depth `< d-1`
 /// 3. Left at depth `< d-1`, right at depth `d-1`
+///
+/// Each case now generates both Eml and EmlStar variants.
 fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTree>) {
     if depth == 0 {
         for leaf in leaves {
@@ -98,6 +89,11 @@ fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTr
                 left: Arc::clone(left),
                 right: Arc::clone(right),
             })));
+            // eml★ variant (Monnerot 2026)
+            out.push(EmlTree::from_node(Arc::new(EmlNode::EmlStar {
+                left: Arc::clone(left),
+                right: Arc::clone(right),
+            })));
         }
     }
 
@@ -108,6 +104,10 @@ fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTr
                 left: Arc::clone(left),
                 right: Arc::clone(right),
             })));
+            out.push(EmlTree::from_node(Arc::new(EmlNode::EmlStar {
+                left: Arc::clone(left),
+                right: Arc::clone(right),
+            })));
         }
     }
 
@@ -115,6 +115,10 @@ fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTr
     for left in &below_max {
         for right in &at_max {
             out.push(EmlTree::from_node(Arc::new(EmlNode::Eml {
+                left: Arc::clone(left),
+                right: Arc::clone(right),
+            })));
+            out.push(EmlTree::from_node(Arc::new(EmlNode::EmlStar {
                 left: Arc::clone(left),
                 right: Arc::clone(right),
             })));
@@ -143,6 +147,10 @@ fn enumerate_at_depth_nodes(depth: usize, leaves: &[Arc<EmlNode>]) -> Vec<Arc<Em
                 left: Arc::clone(left),
                 right: Arc::clone(right),
             }));
+            out.push(Arc::new(EmlNode::EmlStar {
+                left: Arc::clone(left),
+                right: Arc::clone(right),
+            }));
         }
     }
 
@@ -153,6 +161,10 @@ fn enumerate_at_depth_nodes(depth: usize, leaves: &[Arc<EmlNode>]) -> Vec<Arc<Em
                 left: Arc::clone(left),
                 right: Arc::clone(right),
             }));
+            out.push(Arc::new(EmlNode::EmlStar {
+                left: Arc::clone(left),
+                right: Arc::clone(right),
+            }));
         }
     }
 
@@ -160,6 +172,10 @@ fn enumerate_at_depth_nodes(depth: usize, leaves: &[Arc<EmlNode>]) -> Vec<Arc<Em
     for left in &below_max {
         for right in &at_max {
             out.push(Arc::new(EmlNode::Eml {
+                left: Arc::clone(left),
+                right: Arc::clone(right),
+            }));
+            out.push(Arc::new(EmlNode::EmlStar {
                 left: Arc::clone(left),
                 right: Arc::clone(right),
             }));
@@ -212,13 +228,6 @@ pub(super) fn compute_mse_direct(
 }
 
 /// Check whether a topology can plausibly produce outputs in `[target_lo, target_hi]`.
-///
-/// Substitutes each `LoweredOp::Const(1.0)` (which represents a free parameter)
-/// with a wide interval `[-PARAM_BOUND, PARAM_BOUND]` and evaluates the resulting
-/// interval tree.  If the output interval overlaps the target range and is
-/// non-NaN the topology is considered feasible.
-///
-/// Variables get intervals derived from the observed input data.
 pub(super) fn topology_interval_feasible(
     topology: &EmlTree,
     input_intervals: &[crate::lower_interval::IntervalLO],
@@ -232,38 +241,12 @@ pub(super) fn topology_interval_feasible(
     const PARAM_BOUND: f64 = 1_000.0;
     let param_interval = IntervalLO::new(-PARAM_BOUND, PARAM_BOUND);
 
-    // Replace every Const(1.0) in the lowered tree with the wide parameter interval.
     fn widen_params(op: &LoweredOp, param_iv: &IntervalLO) -> LoweredOp {
-        match op {
-            LoweredOp::Const(c) if (*c - 1.0).abs() < 1e-15 => {
-                // Represent as a Const(-PARAM_BOUND) sentinel only for structure;
-                // we will evaluate via a custom evaluator below that intercepts it.
-                // Instead, build a fake two-node tree: use Exp(Const(ln(PARAM_BOUND)))
-                // which evaluates to PARAM_BOUND — but that misrepresents negatives.
-                // Better: widen ALL Const(1.0) nodes by replacing them with a
-                // special sentinel and evaluating manually.
-                // Simplest correct approach: we actually call eval_interval on the
-                // *original* tree, but need to intercept the Const-1.0 nodes.
-                // To avoid a custom eval, we just keep them as Const(1.0) and
-                // note that the caller must widen the result after the fact.
-                // ACTUAL APPROACH: use a dummy variable index past num_vars that
-                // maps to `param_iv` in the vars slice — but that requires passing
-                // the count. Instead, substitute Const(1.0) with the min of the
-                // param_interval so the tree is purely constant for structure
-                // but the real feasibility is evaluated below.
-                //
-                // Cleanest: build a recursive interval evaluator here that mirrors
-                // eval_interval but expands Const(1.0) → param_iv.
-                let _ = param_iv;
-                op.clone()
-            }
-            _ => op.clone(),
-        }
+        let _ = param_iv;
+        op.clone()
     }
-    // (Suppress the helper; we implement the inline evaluator directly below.)
     let _ = widen_params;
 
-    // Inline interval evaluator that expands Const(1.0) → param_interval.
     fn eval_interval_with_params<'a>(
         op: &'a LoweredOp,
         vars: &[IntervalLO],
@@ -323,7 +306,6 @@ pub(super) fn topology_interval_feasible(
             }
             LoweredOp::Exp(x) => {
                 let ix = recurse(x);
-                // Clamp the exponent to avoid overflow: exp(709) ≈ 8e307
                 let lo_exp = ix.lo.max(-PARAM_BOUND).exp();
                 let hi_exp = ix.hi.min(709.0).exp();
                 IntervalLO::new(lo_exp, hi_exp)
@@ -377,7 +359,6 @@ pub(super) fn topology_interval_feasible(
                 }
             }
             LoweredOp::Pow(a, b) => {
-                // Use exp(b*ln(a)) for general case; return full if base straddles zero.
                 let (ia, ib) = recurse2(a, b);
                 if ia.lo <= 0.0 {
                     return IntervalLO::full();
@@ -393,21 +374,22 @@ pub(super) fn topology_interval_feasible(
                 let mul_hi = p.iter().copied().fold(f64::NEG_INFINITY, f64::max);
                 IntervalLO::new(mul_lo.exp(), mul_hi.min(709.0).exp())
             }
+            // Conj for interval: swap imaginary bounds (no-op for real intervals)
+            LoweredOp::Conj(x) => recurse(x),
+            // Catch any other variant not handled
+            _ => IntervalLO::full(),
         }
     }
 
     let lowered = topology.lower();
     let out_iv = eval_interval_with_params(&lowered, input_intervals, &param_interval);
 
-    // NaN output → definitely infeasible
     if out_iv.lo.is_nan() || out_iv.hi.is_nan() {
         return false;
     }
-    // [-inf, +inf] → always feasible (no information)
     if out_iv.lo.is_infinite() && out_iv.hi.is_infinite() {
         return true;
     }
-    // Check overlap with [target_lo, target_hi]
     out_iv.hi >= target_lo && out_iv.lo <= target_hi
 }
 

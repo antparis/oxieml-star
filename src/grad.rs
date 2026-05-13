@@ -204,7 +204,7 @@ impl ParameterizedEmlTree {
                 values.push(Complex64::new(val, 0.0));
                 Ok(idx)
             }
-            EmlNode::Eml { left, right } => {
+            EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
                 let left_idx = self.build_tape_recursive(left, ctx, tape, values, param_idx)?;
                 let right_idx = self.build_tape_recursive(right, ctx, tape, values, param_idx)?;
 
@@ -226,7 +226,7 @@ fn count_ones(node: &EmlNode) -> usize {
     match node {
         EmlNode::One => 1,
         EmlNode::Var(_) => 0,
-        EmlNode::Eml { left, right } => count_ones(left) + count_ones(right),
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => count_ones(left) + count_ones(right),
     }
 }
 
@@ -270,7 +270,7 @@ fn reconstruct_node(node: &EmlNode, params: &[f64], param_idx: &mut usize) -> Ar
             Arc::new(EmlNode::One)
         }
         EmlNode::Var(i) => Arc::new(EmlNode::Var(*i)),
-        EmlNode::Eml { left, right } => {
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             let l = reconstruct_node(left, params, param_idx);
             let r = reconstruct_node(right, params, param_idx);
             Arc::new(EmlNode::Eml { left: l, right: r })

@@ -89,7 +89,7 @@ impl LoweredOp {
             Self::Const(c) => IntervalLO::point(*c),
             Self::NamedConst(nc) => IntervalLO::point(nc.value()),
             Self::Var(i) => vars.get(*i).copied().unwrap_or_else(IntervalLO::nan),
-            Self::Neg(x) => {
+            Self::Neg(x) | Self::Conj(x) => {
                 let ix = x.eval_interval(vars);
                 IntervalLO {
                     lo: -ix.hi,

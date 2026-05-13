@@ -37,7 +37,7 @@ impl LoweredOp {
             Self::Var(i) => *i == var,
             Self::Const(_) | Self::NamedConst(_) => false,
             // Unary nodes: check the child.
-            Self::Neg(x)
+            Self::Neg(x) | Self::Conj(x)
             | Self::Sin(x)
             | Self::Cos(x)
             | Self::Tan(x)
@@ -118,7 +118,7 @@ impl LoweredOp {
             // ---- Unary operators ------------------------------------------
 
             // −x == rhs  →  x == −rhs
-            Self::Neg(x) => x.solve_inner(target_var, LoweredOp::Neg(Box::new(rhs)).simplify()),
+            Self::Neg(x) | Self::Conj(x) => x.solve_inner(target_var, LoweredOp::Neg(Box::new(rhs)).simplify()),
 
             // exp(x) == rhs  →  x == ln(rhs)
             Self::Exp(x) => x.solve_inner(target_var, LoweredOp::Ln(Box::new(rhs)).simplify()),

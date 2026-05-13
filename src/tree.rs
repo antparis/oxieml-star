@@ -3,6 +3,8 @@
 //! The core representation: uniform binary trees where every internal node
 //! is the EML operator `eml(x, y) = exp(x) - ln(y)` and leaves are either
 //! the constant `1` or input variables.
+//!
+//! Extended with `eml★(x, y) = exp(x) - ln(conj(y))` (Monnerot 2026).
 
 use std::fmt;
 use std::sync::Arc;
@@ -23,6 +25,14 @@ pub enum EmlNode {
         /// Left subtree (argument to exp).
         left: Arc<EmlNode>,
         /// Right subtree (argument to ln).
+        right: Arc<EmlNode>,
+    },
+
+    /// `eml★(left, right) = exp(left) - ln(conj(right))` (Monnerot 2026)
+    EmlStar {
+        /// Left subtree (argument to exp).
+        left: Arc<EmlNode>,
+        /// Right subtree (argument to conj then ln).
         right: Arc<EmlNode>,
     },
 }
@@ -59,6 +69,17 @@ impl EmlTree {
     pub fn eml(left: &EmlTree, right: &EmlTree) -> Self {
         Self {
             root: Arc::new(EmlNode::Eml {
+                left: Arc::clone(&left.root),
+                right: Arc::clone(&right.root),
+            }),
+            num_vars: left.num_vars.max(right.num_vars),
+        }
+    }
+
+    /// Create a tree representing `eml★(left, right) = exp(left) - ln(conj(right))`.
+    pub fn eml_star(left: &EmlTree, right: &EmlTree) -> Self {
+        Self {
+            root: Arc::new(EmlNode::EmlStar {
                 left: Arc::clone(&left.root),
                 right: Arc::clone(&right.root),
             }),
@@ -127,6 +148,13 @@ fn write_node(node: &EmlNode, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write_node(right, f)?;
             write!(f, ")")
         }
+        EmlNode::EmlStar { left, right } => {
+            write!(f, "eml_star(")?;
+            write_node(left, f)?;
+            write!(f, ", ")?;
+            write_node(right, f)?;
+            write!(f, ")")
+        }
     }
 }
 
@@ -159,7 +187,7 @@ impl ExactSizeIterator for PostOrderIter<'_> {}
 
 fn collect_postorder<'a>(node: &'a EmlNode, out: &mut Vec<&'a EmlNode>) {
     match node {
-        EmlNode::Eml { left, right } => {
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
             collect_postorder(left, out);
             collect_postorder(right, out);
         }
@@ -171,14 +199,18 @@ fn collect_postorder<'a>(node: &'a EmlNode, out: &mut Vec<&'a EmlNode>) {
 fn node_depth(node: &EmlNode) -> usize {
     match node {
         EmlNode::One | EmlNode::Var(_) => 0,
-        EmlNode::Eml { left, right } => 1 + node_depth(left).max(node_depth(right)),
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
+            1 + node_depth(left).max(node_depth(right))
+        }
     }
 }
 
 fn node_size(node: &EmlNode) -> usize {
     match node {
         EmlNode::One | EmlNode::Var(_) => 1,
-        EmlNode::Eml { left, right } => 1 + node_size(left) + node_size(right),
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
+            1 + node_size(left) + node_size(right)
+        }
     }
 }
 
@@ -186,7 +218,9 @@ fn count_vars(node: &EmlNode) -> usize {
     match node {
         EmlNode::One => 0,
         EmlNode::Var(i) => i + 1,
-        EmlNode::Eml { left, right } => count_vars(left).max(count_vars(right)),
+        EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
+            count_vars(left).max(count_vars(right))
+        }
     }
 }
 
@@ -249,6 +283,17 @@ mod tests {
         assert_eq!(t.size(), 3);
         assert_eq!(t.num_vars(), 1);
         assert_eq!(t.to_string(), "eml(x0, 1)");
+    }
+
+    #[test]
+    fn test_eml_star_basic() {
+        let one = EmlTree::one();
+        let x = EmlTree::var(0);
+        let t = EmlTree::eml_star(&x, &one);
+        assert_eq!(t.depth(), 1);
+        assert_eq!(t.size(), 3);
+        assert_eq!(t.num_vars(), 1);
+        assert_eq!(t.to_string(), "eml_star(x0, 1)");
     }
 
     #[test]

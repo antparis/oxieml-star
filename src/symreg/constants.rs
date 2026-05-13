@@ -68,7 +68,7 @@ pub(super) fn bake_params_into_lowered(topology: &EmlTree, params: &[f64]) -> Lo
                 std::sync::Arc::new(EmlNode::One)
             }
             EmlNode::Var(i) => std::sync::Arc::new(EmlNode::Var(*i)),
-            EmlNode::Eml { left, right } => {
+            EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => {
                 let l = substitute_ones(left, params, idx);
                 let r = substitute_ones(right, params, idx);
                 std::sync::Arc::new(EmlNode::Eml { left: l, right: r })
@@ -94,7 +94,7 @@ pub(super) fn bake_params_into_lowered(topology: &EmlTree, params: &[f64]) -> Lo
                 }
             }
             LoweredOp::Const(_) | LoweredOp::Var(_) | LoweredOp::NamedConst(_) => op.clone(),
-            LoweredOp::Neg(a) => LoweredOp::Neg(Box::new(replace_const_one(a, params, idx))),
+            LoweredOp::Neg(a) | LoweredOp::Conj(a) => LoweredOp::Neg(Box::new(replace_const_one(a, params, idx))),
             LoweredOp::Exp(a) => LoweredOp::Exp(Box::new(replace_const_one(a, params, idx))),
             LoweredOp::Ln(a) => LoweredOp::Ln(Box::new(replace_const_one(a, params, idx))),
             LoweredOp::Sin(a) => LoweredOp::Sin(Box::new(replace_const_one(a, params, idx))),
@@ -179,7 +179,7 @@ fn substitute_const(
             }
         }
         LoweredOp::Var(_) => op.clone(),
-        LoweredOp::Neg(a) => LoweredOp::Neg(Box::new(substitute_const(
+        LoweredOp::Neg(a) | LoweredOp::Conj(a) => LoweredOp::Neg(Box::new(substitute_const(
             a,
             target_idx,
             replacement,
@@ -298,6 +298,7 @@ fn count_const_nodes(op: &LoweredOp) -> usize {
         LoweredOp::Const(_) | LoweredOp::NamedConst(_) => 1,
         LoweredOp::Var(_) => 0,
         LoweredOp::Neg(a)
+        | LoweredOp::Conj(a)
         | LoweredOp::Exp(a)
         | LoweredOp::Ln(a)
         | LoweredOp::Sin(a)
@@ -395,6 +396,7 @@ pub(super) fn extract_named_constants(
                             }
                             LoweredOp::Var(_) => None,
                             LoweredOp::Neg(a)
+                            | LoweredOp::Conj(a)
                             | LoweredOp::Exp(a)
                             | LoweredOp::Ln(a)
                             | LoweredOp::Sin(a)
