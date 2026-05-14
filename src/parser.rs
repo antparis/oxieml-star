@@ -243,6 +243,149 @@ fn node_to_compact(node: &EmlNode) -> String {
     }
 }
 
+
+
+// ==================== Formula Parser (Pipeline GP Python -> Rust Adam) ====================
+
+/// Parse a formula string like "eml(z, eml_star(one, z))" into an EmlTree.
+/// Only supports the EML subset: eml, eml_star, one, zero, z/z0/z1.
+pub fn parse_formula(input: &str) -> Result<EmlTree, crate::error::EmlError> {
+    use crate::error::EmlError;
+
+    let input = input.trim();
+    if input.is_empty() {
+        return Err(EmlError::ParseError("Empty input".into()));
+    }
+
+    let tokens = tokenize_formula(input)?;
+    let mut pos = 0;
+    let tree = parse_formula_expr(&tokens, &mut pos)?;
+
+    if pos != tokens.len() {
+        return Err(EmlError::ParseError("Extra tokens after expression".into()));
+    }
+    Ok(tree)
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum FormulaToken {
+    Ident(String),
+    Number(f64),
+    LParen,
+    RParen,
+    Comma,
+}
+
+fn tokenize_formula(s: &str) -> Result<Vec<FormulaToken>, crate::error::EmlError> {
+    use crate::error::EmlError;
+    let mut tokens = Vec::new();
+    let mut chars = s.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        match c {
+            '(' => tokens.push(FormulaToken::LParen),
+            ')' => tokens.push(FormulaToken::RParen),
+            ',' => tokens.push(FormulaToken::Comma),
+            ' ' => continue,
+            '0'..='9' | '.' | '-' => {
+                let mut num = c.to_string();
+                while let Some(&next) = chars.peek() {
+                    if next.is_ascii_digit() || next == '.' || next == 'e' || next == 'E' {
+                        num.push(chars.next().unwrap());
+                    } else { break; }
+                }
+                let val: f64 = num.parse().map_err(|_| EmlError::ParseError(format!("Invalid number: {}", num)))?;
+                tokens.push(FormulaToken::Number(val));
+            }
+            'a'..='z' | 'A'..='Z' | '_' => {
+                let mut ident = c.to_string();
+                while let Some(&next) = chars.peek() {
+                    if next.is_alphanumeric() || next == '_' {
+                        ident.push(chars.next().unwrap());
+                    } else { break; }
+                }
+                tokens.push(FormulaToken::Ident(ident));
+            }
+            _ => return Err(EmlError::ParseError(format!("Unexpected character: {}", c))),
+        }
+    }
+    Ok(tokens)
+}
+
+fn parse_formula_expr(tokens: &[FormulaToken], pos: &mut usize) -> Result<EmlTree, crate::error::EmlError> {
+    use crate::error::EmlError;
+
+    if *pos >= tokens.len() {
+        return Err(EmlError::ParseError("Unexpected end of input".into()));
+    }
+
+    match &tokens[*pos] {
+        FormulaToken::Ident(name) => {
+            if *pos + 1 < tokens.len() && tokens[*pos + 1] == FormulaToken::LParen {
+                let name = name.clone();
+                *pos += 1;
+                parse_formula_call(&name, tokens, pos)
+            } else {
+                let name = name.clone();
+                *pos += 1;
+                parse_formula_terminal(&name)
+            }
+        }
+        FormulaToken::Number(_) => {
+            *pos += 1;
+            Ok(EmlTree::from_node(Arc::new(EmlNode::One)))
+        }
+        _ => Err(EmlError::ParseError("Expected identifier or number".into())),
+    }
+}
+
+fn parse_formula_terminal(name: &str) -> Result<EmlTree, crate::error::EmlError> {
+    use crate::error::EmlError;
+    match name {
+        "z" | "z0" => Ok(EmlTree::var(0)),
+        "z1" => Ok(EmlTree::var(1)),
+        "one" => Ok(EmlTree::one()),
+        "zero" => Ok(EmlTree::from_node(Arc::new(EmlNode::Zero))),
+        _ => Err(EmlError::ParseError(format!("Unknown terminal: {}", name))),
+    }
+}
+
+fn parse_formula_call(name: &str, tokens: &[FormulaToken], pos: &mut usize) -> Result<EmlTree, crate::error::EmlError> {
+    use crate::error::EmlError;
+
+    if *pos >= tokens.len() || tokens[*pos] != FormulaToken::LParen {
+        return Err(EmlError::ParseError(format!("Expected '(' after {}", name)));
+    }
+    *pos += 1;
+
+    let mut args = Vec::new();
+    while *pos < tokens.len() && tokens[*pos] != FormulaToken::RParen {
+        args.push(parse_formula_expr(tokens, pos)?);
+        if *pos < tokens.len() && tokens[*pos] == FormulaToken::Comma {
+            *pos += 1;
+        } else {
+            break;
+        }
+    }
+
+    if *pos >= tokens.len() || tokens[*pos] != FormulaToken::RParen {
+        return Err(EmlError::ParseError("Expected ')'".into()));
+    }
+    *pos += 1;
+
+    match name {
+        "eml" => {
+            if args.len() != 2 { return Err(EmlError::ParseError("eml requires 2 arguments".into())); }
+            Ok(EmlTree::eml(&args[0], &args[1]))
+        }
+        "eml_star" => {
+            if args.len() != 2 { return Err(EmlError::ParseError("eml_star requires 2 arguments".into())); }
+            Ok(EmlTree::eml_star(&args[0], &args[1]))
+        }
+        _ => Err(EmlError::ParseError(format!("Unknown function: {} (only eml and eml_star supported)", name))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

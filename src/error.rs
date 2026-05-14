@@ -38,6 +38,9 @@ pub enum EmlError {
     /// Empty input data.
     EmptyData,
 
+    /// Parse error when reading a formula string.
+    ParseError(String),
+
     /// A [`tensorlogic_ir::TLExpr`] variant has no `LoweredOp` equivalent.
     ///
     /// Produced by `crate::tensorlogic::from_tlexpr` when the input falls
@@ -76,6 +79,7 @@ impl fmt::Display for EmlError {
             }
             Self::NanEncountered => write!(f, "NaN encountered during computation"),
             Self::EmptyData => write!(f, "empty input data"),
+            Self::ParseError(msg) => write!(f, "parse error: {msg}"),
             #[cfg(feature = "tensorlogic")]
             Self::UnsupportedTlExpr(desc) => {
                 write!(f, "unsupported TLExpr variant: {desc}")
