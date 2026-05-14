@@ -359,12 +359,21 @@ pub(super) fn topology_interval_feasible(
                 let ix = recurse(x);
                 IntervalLO::new(ix.lo.tanh(), ix.hi.tanh())
             }
-            LoweredOp::Arcsin(x) | LoweredOp::Arccos(x) => {
+            LoweredOp::Arcsin(x) => {
                 let ix = recurse(x);
                 if ix.lo < -1.0 || ix.hi > 1.0 {
                     IntervalLO::nan()
                 } else {
                     IntervalLO::new(ix.lo.asin(), ix.hi.asin())
+                }
+            }
+            LoweredOp::Arccos(x) => {
+                let ix = recurse(x);
+                if ix.lo < -1.0 || ix.hi > 1.0 {
+                    IntervalLO::nan()
+                } else {
+                    // arccos is decreasing: acos(lo) > acos(hi)
+                    IntervalLO::new(ix.hi.acos(), ix.lo.acos())
                 }
             }
             LoweredOp::Arctan(x) | LoweredOp::Arctanh(x) | LoweredOp::Arcsinh(x) => {
