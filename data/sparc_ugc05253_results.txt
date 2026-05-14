@@ -1,0 +1,3 @@
+MSE=7.1549e-04  eml_star=False  cos(sub(half, z))
+MSE=7.1792e-04  eml_star=True  conj_eml(sin(add(z, arccos(half))))
+MSE=9.7844e-04  eml_star=False  exp(ln(sin(exp(arctan(z)))))

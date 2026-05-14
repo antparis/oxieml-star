@@ -1,0 +1,3 @@
+MSE=1.2885e-03  eml_star=True  sin(pow(cos((-0.463732+0j)), eml_star(z, five)))
+MSE=1.6898e-03  eml_star=False  sin(arctan(add(arccos(sin(z)), half)))
+MSE=1.9299e-03  eml_star=False  sin(div(sin(z), z))

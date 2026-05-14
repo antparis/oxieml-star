@@ -1,0 +1,3 @@
+MSE=1.5787e-03  eml_star=False  cos(sub(z, cos(cos(log10(z)))))
+MSE=2.3521e-03  eml_star=False  cos(pow(div(z, (3.786828+0j)), z))
+MSE=2.9113e-03  eml_star=False  arctan(arctan(pow(twentyfive, z)))

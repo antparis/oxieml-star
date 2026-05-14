@@ -1,0 +1,3 @@
+MSE=9.3017e-04  eml_star=True  pow(arccos(log10(log10(eml_star(half, pow(zero, z))))), log10(z))
+MSE=1.1095e-03  eml_star=False  arctan(arccos(sub(pow(pow(z, z), ln(ln10)), z)))
+MSE=3.1113e-03  eml_star=True  mul(add(half, z), cos(sin(sub(z, div(conj_eml(cos(cos(imag_i))), add(z, z))))))

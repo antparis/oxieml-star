@@ -1,0 +1,3 @@
+MSE=7.1824e-03  eml_star=True  mul(arccos(sub(cos(eml_star(twentyfive, half)), z)), cos(z))
+MSE=8.1576e-03  eml_star=True  add(sin(z), log10(exp(sin(eml_star(z, one)))))
+MSE=8.4928e-03  eml_star=True  log10(eml_star(arctan(eml(mul(z, eml(mul(z, twentyfive), ln10)), arctan(two))), cos(mul(z, two))))

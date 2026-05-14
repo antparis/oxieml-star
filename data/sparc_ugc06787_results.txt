@@ -1,0 +1,3 @@
+MSE=5.4069e-03  eml_star=False  sin(pow(add(cos(sin(ln10)), z), log10(pi)))
+MSE=5.4849e-03  eml_star=True  cos(eml_star(sub(z, arctan(one)), pi))
+MSE=5.4980e-03  eml_star=False  sin(add(arctan(z), sin(cos(z))))

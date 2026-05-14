@@ -1,0 +1,3 @@
+MSE=1.2818e-03  eml_star=False  pow(z, pow(z, pi))
+MSE=1.5863e-03  eml_star=False  cos(eml(twentyfive, z))
+MSE=1.5863e-03  eml_star=True  cos(eml_star(five, z))
