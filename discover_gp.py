@@ -113,6 +113,40 @@ def safe_exp(z):
     except (ValueError, FloatingPointError, OverflowError, ZeroDivisionError):
         return np.full_like(np.asarray(z, dtype=complex), np.nan)
 
+def safe_pow(x, y):
+    try:
+        x = np.asarray(x, dtype=complex)
+        y = np.asarray(y, dtype=complex)
+        x_safe = np.where(np.abs(x) < 1e-30, 1e-30 + 0j, x)
+        result = x_safe ** y
+        return np.where(np.isfinite(result), result, np.nan + 0j)
+    except (ValueError, FloatingPointError, OverflowError, ZeroDivisionError):
+        return np.full_like(np.asarray(x, dtype=complex), np.nan)
+
+def safe_arcsin(z):
+    try:
+        z = np.asarray(z, dtype=complex)
+        result = np.arcsin(z)
+        return np.where(np.isfinite(result), result, np.nan + 0j)
+    except (ValueError, FloatingPointError, OverflowError, ZeroDivisionError):
+        return np.full_like(np.asarray(z, dtype=complex), np.nan)
+
+def safe_arccos(z):
+    try:
+        z = np.asarray(z, dtype=complex)
+        result = np.arccos(z)
+        return np.where(np.isfinite(result), result, np.nan + 0j)
+    except (ValueError, FloatingPointError, OverflowError, ZeroDivisionError):
+        return np.full_like(np.asarray(z, dtype=complex), np.nan)
+
+def safe_arctan(z):
+    try:
+        z = np.asarray(z, dtype=complex)
+        result = np.arctan(z)
+        return np.where(np.isfinite(result), result, np.nan + 0j)
+    except (ValueError, FloatingPointError, OverflowError, ZeroDivisionError):
+        return np.full_like(np.asarray(z, dtype=complex), np.nan)
+
 
 def _rand_const():
     """Ephemeral random constant for GP."""
@@ -140,6 +174,7 @@ def _setup_pset(num_vars=1):
     pset.addPrimitive(safe_sub, 2, name="sub")
     pset.addPrimitive(safe_mul, 2, name="mul")
     pset.addPrimitive(safe_div, 2, name="div")
+    pset.addPrimitive(safe_pow, 2, name="pow")
 
     # Unary operators
     pset.addPrimitive(safe_conj_eml, 1, name="conj_eml")
@@ -148,11 +183,16 @@ def _setup_pset(num_vars=1):
     pset.addPrimitive(safe_sin, 1, name="sin")
     pset.addPrimitive(safe_cos, 1, name="cos")
     pset.addPrimitive(safe_exp, 1, name="exp")
+    pset.addPrimitive(safe_arcsin, 1, name="arcsin")
+    pset.addPrimitive(safe_arccos, 1, name="arccos")
+    pset.addPrimitive(safe_arctan, 1, name="arctan")
 
     # Constants
     pset.addTerminal(0.0 + 0j, name="zero")
     pset.addTerminal(1.0 + 0j, name="one")
+    pset.addTerminal(0.0 + 1.0j, name="imag_i")
     pset.addTerminal(0.5 + 0j, name="half")
+    pset.addTerminal(2.0 + 0j, name="two")
     pset.addTerminal(5.0 + 0j, name="five")
     pset.addTerminal(25.0 + 0j, name="twentyfive")
     pset.addTerminal(2.302585 + 0j, name="ln10")
@@ -201,10 +241,11 @@ def _eval_individual(individual, pset, var_data, targets):
 # ============================================================
 
 def simplify_formula(formula_str):
-    """Remove trivial patterns from GP formula strings."""
+    """Remove trivial patterns and fold constants in GP formula strings."""
     s = formula_str
-    for _ in range(10):
+    for _ in range(20):
         prev = s
+        # Identity elimination
         s = re.sub(r'add\(([^,()]+), zero\)', r'\1', s)
         s = re.sub(r'add\(zero, ([^,()]+)\)', r'\1', s)
         s = re.sub(r'mul\(([^,()]+), one\)', r'\1', s)
@@ -213,6 +254,21 @@ def simplify_formula(formula_str):
         s = re.sub(r'mul\(zero, [^,()]+\)', 'zero', s)
         s = re.sub(r'sub\(([^,()]+), zero\)', r'\1', s)
         s = re.sub(r'div\(([^,()]+), one\)', r'\1', s)
+        s = re.sub(r'pow\(([^,()]+), one\)', r'\1', s)
+        s = re.sub(r'pow\(([^,()]+), zero\)', 'one', s)
+        s = re.sub(r'exp\(zero\)', 'one', s)
+        s = re.sub(r'ln\(one\)', 'zero', s)
+        s = re.sub(r'sin\(zero\)', 'zero', s)
+        s = re.sub(r'cos\(zero\)', 'one', s)
+        s = re.sub(r'add\(([^,()]+), \\1\)', r'mul(two, \1)', s)
+        s = re.sub(r'sub\(([^,()]+), \\1\)', 'zero', s)
+        s = re.sub(r'div\(([^,()]+), \\1\)', 'one', s)
+        # conj_eml on real constants
+        s = re.sub(r'conj_eml\(zero\)', 'zero', s)
+        s = re.sub(r'conj_eml\(one\)', 'one', s)
+        s = re.sub(r'conj_eml\(half\)', 'half', s)
+        s = re.sub(r'conj_eml\(five\)', 'five', s)
+        s = re.sub(r'conj_eml\(pi\)', 'pi', s)
         if s == prev:
             break
     return s
@@ -446,6 +502,122 @@ def run_gp(var_data, targets, num_vars=1, pop=300, gen=40, runs=10,
 
 
 # ============================================================
+# Pareto Multi-Objective (NSGA-II)
+# ============================================================
+
+def _eval_pareto(individual, pset, var_data, targets):
+    """Evaluate for Pareto: returns (mse, size) tuple."""
+    try:
+        func = gp.compile(expr=individual, pset=pset)
+        pred = func(*var_data)
+        pred = np.asarray(pred, dtype=complex)
+        if pred.shape != targets.shape:
+            return (float('inf'), float('inf'))
+        err = pred - targets
+        mse = float(np.mean(np.abs(err) ** 2))
+        if not np.isfinite(mse):
+            return (float('inf'), float('inf'))
+        return (mse, float(len(individual)))
+    except (ValueError, FloatingPointError, OverflowError,
+            ZeroDivisionError, TypeError, MemoryError):
+        return (float('inf'), float('inf'))
+
+
+def run_gp_pareto(var_data, targets, num_vars=1, pop=500, gen=100,
+                   max_depth=8, seed=None, verbose=True):
+    """Run GP with Pareto multi-objective: minimize MSE AND formula size.
+    
+    Returns a Pareto front: list of (formula, mse, size) sorted by MSE.
+    """
+    if not isinstance(var_data, list):
+        var_data = [np.asarray(var_data, dtype=complex)]
+    else:
+        var_data = [np.asarray(v, dtype=complex) for v in var_data]
+    targets = np.asarray(targets, dtype=complex)
+    pset = _setup_pset(num_vars)
+
+    # Multi-objective fitness: minimize both MSE and size
+    if not hasattr(creator, "FitnessPareto"):
+        creator.create("FitnessPareto", base.Fitness, weights=(-1.0, -1.0))
+    if not hasattr(creator, "IndividualPareto"):
+        creator.create("IndividualPareto", gp.PrimitiveTree,
+                       fitness=creator.FitnessPareto)
+
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+
+    toolbox = base.Toolbox()
+    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=4)
+    toolbox.register("individual", tools.initIterate,
+                     creator.IndividualPareto, toolbox.expr)
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+    toolbox.register("evaluate", _eval_pareto,
+                     pset=pset, var_data=var_data, targets=targets)
+    toolbox.register("select", tools.selNSGA2)
+    toolbox.register("mate", gp.cxOnePoint)
+    toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
+    toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
+    toolbox.decorate("mate",
+                     gp.staticLimit(key=operator.attrgetter("height"),
+                                    max_value=max_depth))
+    toolbox.decorate("mutate",
+                     gp.staticLimit(key=operator.attrgetter("height"),
+                                    max_value=max_depth))
+
+    if verbose:
+        print(f"Pareto GP: pop={pop}, gen={gen}, depth<={max_depth}")
+
+    population = toolbox.population(n=pop)
+    hof = tools.ParetoFront()
+
+    start = time.time()
+    algorithms.eaMuPlusLambda(population, toolbox,
+                              mu=pop, lambda_=pop,
+                              cxpb=0.7, mutpb=0.2, ngen=gen,
+                              halloffame=hof, verbose=False)
+    elapsed = time.time() - start
+
+    # Extract Pareto front
+    pareto = []
+    for ind in hof:
+        mse = ind.fitness.values[0]
+        size = int(ind.fitness.values[1])
+        formula = simplify_formula(str(ind))
+        has_star = "eml_star" in formula or "conj_eml" in formula
+        if np.isfinite(mse):
+            pareto.append({
+                'formula': formula,
+                'mse': mse,
+                'size': size,
+                'has_eml_star': has_star,
+            })
+
+    pareto.sort(key=lambda r: r['mse'])
+
+    # Remove duplicates
+    seen = set()
+    unique = []
+    for p in pareto:
+        key = (round(p['mse'], 10), p['size'])
+        if key not in seen:
+            seen.add(key)
+            unique.append(p)
+    pareto = unique
+
+    if verbose:
+        print(f"Done in {elapsed:.1f}s. Pareto front: {len(pareto)} solutions\n")
+        print(f"{'MSE':<14} {'Size':<6} {'eml★':<6} Formula")
+        print("-" * 80)
+        for p in pareto[:15]:
+            star = "YES" if p['has_eml_star'] else "no"
+            tag = " <<<< EXACT" if p['mse'] < 1e-20 else ""
+            print(f"{p['mse']:<14.4e} {p['size']:<6} {star:<6} {p['formula']}{tag}")
+
+    return pareto
+
+
+# ============================================================
 # ADF: Automatically Defined Functions
 # ============================================================
 
@@ -454,9 +626,8 @@ def find_common_subtrees(results, min_count=2):
     subtrees = {}
     for r in results:
         f = r['formula']
-        # Extract function calls with simple (non-nested) arguments
         for match in re.finditer(
-            r'(eml|eml_star|conj_eml|add|sub|mul|ln|log10|div)\([^()]*\)', f
+            r'(eml|eml_star|conj_eml|add|sub|mul|ln|log10|div|sin|cos|exp|pow|arcsin|arccos|arctan)\([^()]*\)', f
         ):
             sub = match.group()
             if len(sub) > 5 and sub != f:
@@ -633,6 +804,40 @@ if __name__ == "__main__":
                 f.write(f"MSE={r['mse']:.4e}  eml_star={r['has_eml_star']}  "
                         f"{r['formula']}\n")
         print(f"\nResults saved to {out_path}")
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "--pareto":
+        # Pareto mode
+        if len(sys.argv) < 3:
+            print("Usage: python3 discover_gp.py --pareto data.csv "
+                  "[--pop 500] [--gen 100]")
+            sys.exit(1)
+
+        csv_path = sys.argv[2]
+        pop = 500
+        gen = 100
+
+        i = 3
+        while i < len(sys.argv) - 1:
+            if sys.argv[i] == "--pop":
+                pop = int(sys.argv[i + 1])
+            elif sys.argv[i] == "--gen":
+                gen = int(sys.argv[i + 1])
+            i += 2
+
+        print(f"Loading {csv_path}...")
+        var_data, targets, num_vars = load_csv(csv_path)
+        print(f"Loaded {len(targets)} points, {num_vars} variable(s)")
+        print(f"Pareto mode: pop={pop}, gen={gen}\n")
+
+        pareto = run_gp_pareto(var_data, targets, num_vars=num_vars,
+                                pop=pop, gen=gen, seed=42)
+
+        out_path = csv_path.replace(".csv", "_pareto.txt")
+        with open(out_path, "w") as f:
+            for p in pareto:
+                f.write(f"MSE={p['mse']:.4e}  size={p['size']}  "
+                        f"eml_star={p['has_eml_star']}  {p['formula']}\n")
+        print(f"\nPareto front saved to {out_path}")
 
     elif len(sys.argv) > 1 and sys.argv[1] == "--csv":
         # CSV mode
