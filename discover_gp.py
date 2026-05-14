@@ -34,6 +34,86 @@ from scipy.optimize import minimize as scipy_minimize
 
 
 # ============================================================
+# Progress Bar
+# ============================================================
+
+def progress_bar(current, total, bar_len=30, prefix="", suffix="", mse=None):
+    """Print a progress bar to terminal."""
+    frac = current / max(total, 1)
+    filled = int(bar_len * frac)
+    bar = "█" * filled + "░" * (bar_len - filled)
+    pct = frac * 100
+    mse_str = f" MSE={mse:.2e}" if mse is not None else ""
+    print(f"\r  {prefix} [{bar}] {pct:5.1f}%{mse_str} {suffix}", end="", flush=True)
+
+
+def run_evolution(population, toolbox, cxpb, mutpb, ngen, halloffame,
+                  verbose=True, prefix=""):
+    """Custom evolution loop with progress bar."""
+    # Evaluate initial population
+    invalid = [ind for ind in population if not ind.fitness.valid]
+    fitnesses = list(map(toolbox.evaluate, invalid))
+    for ind, fit in zip(invalid, fitnesses):
+        ind.fitness.values = fit
+
+    if halloffame is not None:
+        halloffame.update(population)
+
+    best_mse = float('inf')
+    
+    for gen_idx in range(1, ngen + 1):
+        # Select next generation
+        offspring = toolbox.select(population, len(population))
+        offspring = list(map(toolbox.clone, offspring))
+
+        # Crossover
+        for i in range(1, len(offspring), 2):
+            if random.random() < cxpb:
+                try:
+                    toolbox.mate(offspring[i-1], offspring[i])
+                    del offspring[i-1].fitness.values
+                    del offspring[i].fitness.values
+                except Exception:
+                    pass
+
+        # Mutation
+        for i in range(len(offspring)):
+            if random.random() < mutpb:
+                try:
+                    toolbox.mutate(offspring[i])
+                    del offspring[i].fitness.values
+                except Exception:
+                    pass
+
+        # Evaluate
+        invalid = [ind for ind in offspring if not ind.fitness.valid]
+        fitnesses = list(map(toolbox.evaluate, invalid))
+        for ind, fit in zip(invalid, fitnesses):
+            ind.fitness.values = fit
+
+        # Replace population
+        population[:] = offspring
+
+        if halloffame is not None:
+            halloffame.update(population)
+
+        # Track best MSE
+        if halloffame and len(halloffame) > 0:
+            current_mse = halloffame[0].fitness.values[0]
+            if current_mse < best_mse:
+                best_mse = current_mse
+
+        # Progress bar
+        if verbose and gen_idx % max(1, ngen // 30) == 0:
+            progress_bar(gen_idx, ngen, prefix=prefix, mse=best_mse)
+
+    if verbose:
+        progress_bar(ngen, ngen, prefix=prefix, mse=best_mse)
+    
+    return population
+
+
+# ============================================================
 # Safe Primitives
 # ============================================================
 
@@ -445,15 +525,28 @@ def run_gp(var_data, targets, num_vars=1, pop=300, gen=40, runs=10,
         hof = tools.HallOfFame(5)
 
         if verbose:
-            print(f"Run {run_idx + 1}/{runs}...", end=" ", flush=True)
+            print(f"Run {run_idx + 1}/{runs}")
 
         start = time.time()
-        algorithms.eaSimple(population, toolbox,
-                            cxpb=0.7, mutpb=0.2, ngen=gen,
-                            halloffame=hof, verbose=False)
+        try:
+            run_evolution(population, toolbox,
+                         cxpb=0.7, mutpb=0.2, ngen=gen,
+                         halloffame=hof, verbose=verbose,
+                         prefix=f"Run {run_idx+1}/{runs}")
+            elapsed = time.time() - start
+            
+            if len(hof) == 0:
+                if verbose:
+                    print(f"\n  ⚠ No valid individual found")
+                continue
+                
+            best = hof[0]
+        except Exception as e:
+            if verbose:
+                print(f"\n  ✗ Error: {e}")
+            continue
+        
         elapsed = time.time() - start
-
-        best = hof[0]
         # Report raw MSE without parsimony penalty
         best_mse = best.fitness.values[0] - PARSIMONY_WEIGHT * len(best)
         if best_mse < 0:
@@ -461,25 +554,22 @@ def run_gp(var_data, targets, num_vars=1, pop=300, gen=40, runs=10,
         formula_str = simplify_formula(str(best))
         has_star = "eml_star" in formula_str or "conj_eml" in formula_str
 
-        if verbose:
-            status = "EXACT" if best_mse < 1e-20 else f"MSE={best_mse:.2e}"
-            star_flag = " [eml★]" if has_star else ""
-            print(f"{status}{star_flag} ({elapsed:.1f}s)", end="")
-
         # Optimize constants in best formula
+        opt_mse = None
         if best_mse > 1e-20:
             opt_pset = _setup_pset(num_vars)
             opt_formula, opt_mse = optimize_constants(
                 formula_str, opt_pset, var_data, targets, num_vars)
             if opt_mse is not None and opt_mse < best_mse:
-                if verbose:
-                    print(f" -> OPT {opt_mse:.2e}", end="")
                 formula_str = simplify_formula(opt_formula)
                 best_mse = opt_mse
                 has_star = "eml_star" in formula_str or "conj_eml" in formula_str
 
         if verbose:
-            print()  # newline
+            status = "✓ EXACT" if best_mse < 1e-20 else f"  MSE={best_mse:.2e}"
+            star_flag = " [eml★]" if has_star else ""
+            opt_flag = " [OPT]" if opt_mse is not None else ""
+            print(f"\n  → {status}{star_flag}{opt_flag} ({elapsed:.1f}s)")
 
         all_results.append({
             'formula': formula_str,
@@ -492,11 +582,17 @@ def run_gp(var_data, targets, num_vars=1, pop=300, gen=40, runs=10,
     all_results.sort(key=lambda r: r['mse'])
 
     if verbose:
-        print(f"\nBest overall: MSE={all_results[0]['mse']:.2e}")
-        print(f"Formula: {all_results[0]['formula']}")
+        print(f"\n{'─'*60}")
         exact = sum(1 for r in all_results if r['mse'] < 1e-20)
         with_star = sum(1 for r in all_results if r['has_eml_star'])
-        print(f"Exact: {exact}/{runs}, with eml★: {with_star}/{runs}")
+        best = all_results[0]
+        if best['mse'] < 1e-20:
+            print(f"  ✓ EXACT SOLUTION FOUND")
+        else:
+            print(f"  Best MSE: {best['mse']:.4e}")
+        print(f"  Formula: {best['formula']}")
+        print(f"  Exact: {exact}/{runs} | eml★: {with_star}/{runs}")
+        print(f"{'─'*60}")
 
     return all_results
 
