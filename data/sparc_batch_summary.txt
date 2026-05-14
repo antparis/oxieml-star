@@ -1,0 +1,19 @@
+SPARC BATCH: 124 galaxies tested
+Median MSE: 1.8867e-03
+Best: F579-V1 MSE=1.7106e-04
+Worst: UGC04305 MSE=3.6288e-02
+MSE < 1e-3: 25/124 (20%)
+MSE < 1e-2: 122/124 (98%)
+eml_star: 29/124 (23%)
+
+Top 10:
+F579-V1        14pts  1.71e-04
+UGC05005       11pts  2.06e-04
+NGC3109        25pts  3.57e-04
+NGC1705        14pts  3.96e-04
+NGC4214        14pts  5.28e-04
+UGC12632       15pts  5.73e-04
+NGC6503        31pts  5.99e-04
+UGC01281       25pts  6.14e-04
+NGC0100        21pts  7.01e-04
+UGC08490       30pts  7.39e-04
