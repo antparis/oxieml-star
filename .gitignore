@@ -83,3 +83,4 @@ yarn-debug.log*
 yarn-error.log*
 crates/oxigdal-node/oxigdal.darwin-arm64.node
 __pycache__/
+test_double_mirror.py
