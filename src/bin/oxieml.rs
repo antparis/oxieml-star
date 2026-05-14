@@ -218,6 +218,62 @@ fn main() {
         return;
     }
 
+    // Check for --optimize-formula flag (pipeline GP Python -> Rust Adam)
+    if let Some(pos) = args.iter().position(|a| a == "--optimize-formula") {
+        let formula = args.get(pos + 1)
+            .expect("--optimize-formula requires a formula string");
+        let num_vars = parse_named_usize(&args, "--vars")
+            .ok().flatten().unwrap_or(1);
+        let text = get_symreg_data(&args).expect("Need --file for data");
+        let (inputs, targets) = parse_dataset(&text, num_vars).expect("Bad data");
+
+        use oxieml::parser::parse_formula;
+        use oxieml::grad::ParameterizedEmlTree;
+
+        let tree = parse_formula(formula).expect("Parse error");
+        let mut ptree = ParameterizedEmlTree::from_topology(&tree, 1.0);
+
+        // Run Adam optimization
+        use oxieml::symreg::SymRegConfig;
+        let config = SymRegConfig::default();
+        let n = inputs.len();
+        for iter in 0..config.max_iter {
+            let mut total_mse = 0.0;
+            for i in 0..n {
+                let ctx = oxieml::eval::EvalCtx::new(&inputs[i]);
+                match ptree.forward_with_jacobian(&ctx) {
+                    Ok((val, jac)) => {
+                        let err = val - targets[i];
+                        total_mse += err * err;
+                        // Simple gradient step
+                        for (p, g) in ptree.params.iter_mut().zip(jac.iter()) {
+                            *p -= config.learning_rate * 2.0 * err * g;
+                        }
+                    }
+                    Err(_) => {}
+                }
+            }
+            total_mse /= n as f64;
+            if iter % 100 == 0 || iter == config.max_iter - 1 {
+                eprintln!("Iter {}: MSE = {:.6e}", iter, total_mse);
+            }
+        }
+
+        // Final MSE
+        let mut final_mse = 0.0;
+        for i in 0..n {
+            let ctx = oxieml::eval::EvalCtx::new(&inputs[i]);
+            if let Ok(val) = ptree.forward_with_jacobian(&ctx) {
+                let err = val.0 - targets[i];
+                final_mse += err * err;
+            }
+        }
+        final_mse /= n as f64;
+        println!("Optimized MSE: {:.6e}", final_mse);
+        println!("Params: {:?}", ptree.params);
+        return;
+    }
+
     let input = match get_input(&args) {
         Ok(s) => s,
         Err(e) => {
