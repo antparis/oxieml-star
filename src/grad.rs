@@ -225,7 +225,7 @@ impl ParameterizedEmlTree {
 fn count_ones(node: &EmlNode) -> usize {
     match node {
         EmlNode::One => 1,
-        EmlNode::Zero => 0,
+        EmlNode::Zero => 1,
         EmlNode::Var(_) => 0,
         EmlNode::Eml { left, right } | EmlNode::EmlStar { left, right } => count_ones(left) + count_ones(right),
     }
