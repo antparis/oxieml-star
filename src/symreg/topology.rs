@@ -9,6 +9,7 @@
 //! Extended with EmlStar topologies (Monnerot 2026).
 
 use std::sync::Arc;
+use std::collections::HashMap;
 
 use crate::eval::EvalCtx;
 use crate::grad::ParameterizedEmlTree;
@@ -21,9 +22,10 @@ use crate::tree::{EmlNode, EmlTree};
 pub fn enumerate_topologies(max_depth: usize, num_vars: usize) -> Vec<EmlTree> {
     let mut topologies = Vec::new();
     let leaves = build_leaves(num_vars);
+    let mut cache: HashMap<usize, Vec<Arc<EmlNode>>> = HashMap::new();
 
     for depth in 0..=max_depth {
-        enumerate_at_depth(depth, &leaves, &mut topologies);
+        enumerate_at_depth(depth, &leaves, &mut topologies, &mut cache);
         if topologies.len() > 200_000 {
             topologies.truncate(200_000);
             break;
@@ -70,7 +72,12 @@ pub(super) fn build_leaves(num_vars: usize) -> Vec<Arc<EmlNode>> {
 /// 3. Left at depth `< d-1`, right at depth `d-1`
 ///
 /// Each case now generates both Eml and EmlStar variants.
-fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTree>) {
+fn enumerate_at_depth(
+    depth: usize,
+    leaves: &[Arc<EmlNode>],
+    out: &mut Vec<EmlTree>,
+    cache: &mut HashMap<usize, Vec<Arc<EmlNode>>>,
+) {
     if depth == 0 {
         for leaf in leaves {
             out.push(EmlTree::from_node(Arc::clone(leaf)));
@@ -78,12 +85,12 @@ fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTr
         return;
     }
 
-    let at_max = enumerate_at_depth_nodes(depth - 1, leaves);
+    let at_max = enumerate_at_depth_nodes(depth - 1, leaves, cache);
 
     // Nodes strictly below max depth
     let mut below_max = Vec::new();
     for d in 0..(depth - 1) {
-        below_max.extend(enumerate_at_depth_nodes(d, leaves));
+        below_max.extend(enumerate_at_depth_nodes(d, leaves, cache));
     }
 
     // Case 1: both at max-1 depth
@@ -131,15 +138,25 @@ fn enumerate_at_depth(depth: usize, leaves: &[Arc<EmlNode>], out: &mut Vec<EmlTr
 }
 
 /// Enumerate node Arcs at exactly the given depth.
-fn enumerate_at_depth_nodes(depth: usize, leaves: &[Arc<EmlNode>]) -> Vec<Arc<EmlNode>> {
-    if depth == 0 {
-        return leaves.to_vec();
+fn enumerate_at_depth_nodes(
+    depth: usize,
+    leaves: &[Arc<EmlNode>],
+    cache: &mut HashMap<usize, Vec<Arc<EmlNode>>>,
+) -> Vec<Arc<EmlNode>> {
+    if let Some(cached) = cache.get(&depth) {
+        return cached.clone();
     }
 
-    let at_max = enumerate_at_depth_nodes(depth - 1, leaves);
+    if depth == 0 {
+        let result = leaves.to_vec();
+        cache.insert(0, result.clone());
+        return result;
+    }
+
+    let at_max = enumerate_at_depth_nodes(depth - 1, leaves, cache);
     let mut below_max = Vec::new();
     for d in 0..(depth - 1) {
-        below_max.extend(enumerate_at_depth_nodes(d, leaves));
+        below_max.extend(enumerate_at_depth_nodes(d, leaves, cache));
     }
 
     let mut out = Vec::new();
@@ -186,6 +203,7 @@ fn enumerate_at_depth_nodes(depth: usize, leaves: &[Arc<EmlNode>]) -> Vec<Arc<Em
         }
     }
 
+    cache.insert(depth, out.clone());
     out
 }
 
