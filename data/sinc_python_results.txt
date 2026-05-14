@@ -1,0 +1,3 @@
+MSE=0.0000e+00  eml_star=False  div(sin(z), z)
+MSE=0.0000e+00  eml_star=False  div(sin(z), z)
+MSE=0.0000e+00  eml_star=True  conj_eml(div(sin(z), z))

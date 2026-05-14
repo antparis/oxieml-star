@@ -1,0 +1,3 @@
+MSE=1.8099e-03  eml_star=False  eml(log10(z), sub(ln10, one))
+MSE=4.4473e-03  eml_star=False  arctan(mul(mul(pow(arctan(two), pow(arctan(pi), mul(z, z))), arctan(one)), z))
+MSE=5.9484e-03  eml_star=False  arctan(pow(z, pow(z, div(ln(pow(z, z)), div(twentyfive, z)))))
