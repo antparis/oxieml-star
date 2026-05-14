@@ -254,8 +254,12 @@ fn main() {
                 }
             }
             total_mse /= n as f64;
-            if iter % 100 == 0 || iter == config.max_iter - 1 {
+            if iter % 500 == 0 || iter == config.max_iter - 1 {
                 eprintln!("Iter {}: MSE = {:.6e}", iter, total_mse);
+            }
+            if total_mse < 1e-20 {
+                eprintln!("Early stop: EXACT at iter {}", iter);
+                break;
             }
         }
 
