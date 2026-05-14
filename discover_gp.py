@@ -30,6 +30,7 @@ from functools import partial
 from deap import base, creator, gp, tools, algorithms
 
 from oxieml_star import eml, eml_star, conj_eml
+from scipy.optimize import minimize as scipy_minimize
 
 
 # ============================================================
@@ -218,6 +219,56 @@ def simplify_formula(formula_str):
 
 
 # ============================================================
+# Constant Optimization (Nelder-Mead)
+# ============================================================
+
+def optimize_constants(formula_str, pset, var_data, targets, num_vars):
+    """Extract numeric constants from GP formula and optimize via Nelder-Mead.
+    
+    Returns (optimized_formula_str, optimized_mse) or (formula_str, None) on failure.
+    """
+    # Find all numeric constants like (1.23+0j)
+    pattern = r'\((-?[0-9]+\.?[0-9]*)\+0j\)'
+    matches = list(re.finditer(pattern, formula_str))
+    if not matches:
+        return formula_str, None
+
+    original_vals = [float(m.group(1)) for m in matches]
+
+    def eval_with_constants(const_vals):
+        s = formula_str
+        for m, val in zip(reversed(matches), reversed(const_vals)):
+            s = s[:m.start()] + f"({val}+0j)" + s[m.end():]
+        try:
+            tree = gp.PrimitiveTree.from_string(s, pset)
+            func = gp.compile(expr=tree, pset=pset)
+            pred = func(*var_data)
+            pred = np.asarray(pred, dtype=complex)
+            if pred.shape != targets.shape:
+                return 1e10
+            err = pred - targets
+            mse = float(np.mean(np.abs(err) ** 2))
+            return mse if np.isfinite(mse) else 1e10
+        except (ValueError, FloatingPointError, OverflowError,
+                ZeroDivisionError, TypeError, MemoryError, Exception):
+            return 1e10
+
+    try:
+        result = scipy_minimize(eval_with_constants, original_vals,
+                                method="Nelder-Mead",
+                                options={"maxiter": 500, "xatol": 1e-6})
+        if result.fun < eval_with_constants(original_vals):
+            s = formula_str
+            opt_vals = list(result.x)
+            for m, val in zip(reversed(matches), reversed(opt_vals)):
+                s = s[:m.start()] + f"({val:.6f}+0j)" + s[m.end():]
+            return s, result.fun
+    except Exception:
+        pass
+    return formula_str, None
+
+
+# ============================================================
 # CSV Loader
 # ============================================================
 
@@ -357,7 +408,22 @@ def run_gp(var_data, targets, num_vars=1, pop=300, gen=40, runs=10,
         if verbose:
             status = "EXACT" if best_mse < 1e-20 else f"MSE={best_mse:.2e}"
             star_flag = " [eml★]" if has_star else ""
-            print(f"{status}{star_flag} ({elapsed:.1f}s)")
+            print(f"{status}{star_flag} ({elapsed:.1f}s)", end="")
+
+        # Optimize constants in best formula
+        if best_mse > 1e-20:
+            opt_pset = _setup_pset(num_vars)
+            opt_formula, opt_mse = optimize_constants(
+                formula_str, opt_pset, var_data, targets, num_vars)
+            if opt_mse is not None and opt_mse < best_mse:
+                if verbose:
+                    print(f" -> OPT {opt_mse:.2e}", end="")
+                formula_str = simplify_formula(opt_formula)
+                best_mse = opt_mse
+                has_star = "eml_star" in formula_str or "conj_eml" in formula_str
+
+        if verbose:
+            print()  # newline
 
         all_results.append({
             'formula': formula_str,
