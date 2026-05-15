@@ -1,0 +1,6 @@
+MSE=1.0417e-01  size=6  eml_star=True  add(log10(arcsin(conj_eml(z))), half)
+MSE=1.5379e-01  size=5  eml_star=False  sub(arctan(z), arctan(half))
+MSE=1.5915e-01  size=4  eml_star=False  log10(mul(z, (2.05+0j)))
+MSE=1.9325e-01  size=3  eml_star=False  arctan(arctan(z))
+MSE=2.9662e-01  size=2  eml_star=False  arctan(z)
+MSE=4.8660e+00  size=1  eml_star=False  z

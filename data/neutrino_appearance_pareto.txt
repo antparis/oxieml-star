@@ -1,0 +1,5 @@
+MSE=5.5214e-03  size=6  eml_star=False  div(arctan(mul(z, imag_i)), twentyfive)
+MSE=8.7240e-03  size=4  eml_star=False  div(arctan(z), twentyfive)
+MSE=1.2095e-02  size=3  eml_star=False  sub(z, z)
+MSE=1.8637e-01  size=2  eml_star=False  log10(z)
+MSE=8.2219e+00  size=1  eml_star=False  z
