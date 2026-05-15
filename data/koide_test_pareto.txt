@@ -1,5 +1,0 @@
-MSE=8.6479e-08  size=5  eml_star=False  cos(sin(pow(one, z0)))
-MSE=7.9663e-03  size=4  eml_star=False  arctan(cos(sin(z0)))
-MSE=9.8356e-03  size=3  eml_star=False  cos(sin(z1))
-MSE=4.7625e-01  size=2  eml_star=False  arctan(z1)
-MSE=6.0450e+02  size=1  eml_star=False  z0
