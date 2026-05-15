@@ -1,0 +1,4 @@
+MSE=4.4246e-01  size=5  eml_star=True  conj_eml(pow(z, log10(twentyfive)))
+MSE=1.9576e+00  size=4  eml_star=False  ln(pow((7.13+0j), z))
+MSE=2.1988e+00  size=3  eml_star=False  mul(two, z)
+MSE=1.0065e+01  size=1  eml_star=False  z

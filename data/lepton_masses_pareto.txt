@@ -1,0 +1,6 @@
+MSE=8.7877e+00  size=9  eml_star=False  sub(pow(five, arctan(z)), arccos(arctan(z)))
+MSE=9.6272e+00  size=7  eml_star=False  sub(pow(five, arctan(z)), half)
+MSE=1.1772e+01  size=6  eml_star=False  pow(sub((9.62+0j), pi), arctan(z))
+MSE=1.3085e+01  size=3  eml_star=False  pow(z, half)
+MSE=4.7215e+01  size=2  eml_star=False  ln(z)
+MSE=9.0277e+03  size=1  eml_star=False  z
