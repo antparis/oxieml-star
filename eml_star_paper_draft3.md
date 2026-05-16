@@ -6,7 +6,7 @@
 
 ## Abstract
 
-We introduce eml★, an anti-holomorphic extension of the EML operator (Odrzywołek 2019), into genetic programming symbolic regression applied to galaxy rotation curves. Through a characterization battery on synthetic complex fields, we establish that eml★ acts as a detector of non-holomorphic structure: it appears in 100% of anti-holomorphic targets (conj(z), conj(z)²) and 0% of holomorphic targets (z², exp(z)). Applied to 125 SPARC galaxies and 23 LITTLE THINGS dwarf galaxies, eml★ preferentially improves rotation curve fits for low-luminosity systems (Spearman rho = −0.27, p = 0.004). The signal reproduces on the independent LITTLE THINGS sample at a consistent rate. Neither MOND acceleration threshold (p = 0.35) nor dark matter fraction (p = 0.81) are significant predictors; luminosity alone best predicts eml★ response. These results suggest that the gravitational potential in dark-matter-dominated galaxies contains a non-holomorphic component that becomes detectable when the baryonic contribution is subdominant. We report all negative results (MOND, dark matter fraction, vortex topology tests) to constrain the interpretation. Code and sample data are available at github.com/antparis/eml_star. Full result tables will be released upon publication.
+We introduce eml★, an anti-holomorphic extension of the EML operator (Odrzywołek 2026), into genetic programming symbolic regression applied to galaxy rotation curves. Through a characterization battery on synthetic complex fields, we establish that eml★ acts as a detector of non-holomorphic structure: it appears in 100% of anti-holomorphic targets (conj(z), conj(z)²) and 0% of holomorphic targets (z², exp(z)). Applied to 125 SPARC galaxies and 23 LITTLE THINGS dwarf galaxies, eml★ preferentially improves rotation curve fits for low-luminosity systems (Spearman rho = −0.27, p = 0.004). The signal reproduces on the independent LITTLE THINGS sample at a consistent rate. Neither MOND acceleration threshold (p = 0.35) nor dark matter fraction (p = 0.81) are significant predictors; luminosity alone best predicts eml★ response. These results suggest that the gravitational potential in dark-matter-dominated galaxies contains a non-holomorphic component that becomes detectable when the baryonic contribution is subdominant. We report all negative results (MOND, dark matter fraction, vortex topology tests) to constrain the interpretation. Code and data: github.com/antparis/eml_star (theory), github.com/antparis/oxieml-star (software + galaxy data). Zenodo DOIs: 10.5281/zenodo.20091022 (paper), 10.5281/zenodo.20238531 (software v0.3.0).
 
 ---
 
@@ -40,7 +40,7 @@ where z̄ denotes the complex conjugate of z. The operator eml★ is anti-holomo
 
 We use the DEAP framework (Fortin et al. 2012) for tree-based genetic programming. The primitive set includes binary operators {+, −, ×, ÷, pow, eml, eml★} and unary operators {conj_eml, ln, log₁₀, sin, cos, exp, arcsin, arccos, arctan}. Constants include {0, 1, i, ½, 2, π} and ephemeral random constants drawn from U(−10, 10). All arithmetic is complex-valued with safe guards against overflow, division by zero, and logarithm of zero. A parsimony pressure of λ = 0.0002 × tree_size is added to the MSE fitness to penalize complexity. After evolution, constants in the best individual are refined via Nelder-Mead optimization (scipy.optimize.minimize).
 
-Standard parameters: population = 300, generations = 60, 5 independent runs per galaxy, tournament selection (size 3), crossover probability 0.7, mutation probability 0.2, maximum tree depth 8.
+Standard parameters: population = 300, generations = 60, 5 independent runs per galaxy, tournament selection (size 3), crossover probability 0.7, mutation probability 0.2, maximum tree depth 8. For high-power batch runs on the full SPARC catalog, we also used PySR (Cranmer 2023), a Julia-based symbolic regression engine, to cross-validate GP results.
 
 ### 2.3 Data
 
@@ -190,7 +190,7 @@ Ruled out: (1) eml★ as a topological detector. (2) MOND acceleration as a pred
 
 The central open question is physical: why does the mapping from baryonic to observed kinematics require anti-holomorphic terms in dark-matter-dominated galaxies? Answering this will require theoretical work connecting the Wirtinger decomposition to gravitational potential theory, and observational work extending the analysis to independent datasets such as gravitational lensing fields and interferometric HI maps.
 
-Code and sample data are available at github.com/antparis/eml_star. Full result tables will be released upon publication.
+Code and data: github.com/antparis/eml_star (theory), github.com/antparis/oxieml-star (software + galaxy data). Zenodo DOIs: 10.5281/zenodo.20091022 (paper), 10.5281/zenodo.20238531 (software v0.3.0).
 
 ---
 
@@ -204,7 +204,7 @@ Code and sample data are available at github.com/antparis/eml_star. Full result 
 - Lelli, F., McGaugh, S.S. & Schombert, J.M. 2016, AJ, 152, 157 (SPARC)
 - Milgrom, M. 1983, ApJ, 270, 365
 - Navarro, J.F., Frenk, C.S. & White, S.D.M. 1996, ApJ, 462, 563
-- Odrzywołek, A. 2019, arXiv:1902.09425
+- Odrzywołek, A. 2026, arXiv:2603.21852v2 (originally arXiv:1902.09425)
 - Schmidt, M. & Lipson, H. 2009, Science, 324, 81
 
 ---
@@ -277,4 +277,4 @@ In all five cases, the conjugation operator (z̄) appears in nested positions wi
 
 ## Appendix B — Complete galaxy table
 
-The complete table of 148 galaxies (125 SPARC + 23 LITTLE THINGS) with improvement Δ, eml★ flag, and physical properties is available as a machine-readable CSV file (master_galaxy_table.csv) in the supplementary materials and at github.com/antparis/eml_star upon publication.
+The complete table of 148 galaxies (125 SPARC + 23 LITTLE THINGS) with improvement Δ, eml★ flag, and physical properties is available as a machine-readable CSV file (master_galaxy_table.csv) in the supplementary materials and at github.com/antparis/oxieml-star (master_galaxy_table.csv).
