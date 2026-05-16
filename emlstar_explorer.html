@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eml&#9733; Interactive Explorer</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{--bg:#0f172a;--card:#1e2937;--accent:#22d3ee}
+body{margin:0;padding:20px;background:var(--bg);color:#e2e8f0;font-family:system-ui,sans-serif}
+.container{max-width:1200px;margin:0 auto}
+h1{text-align:center;color:var(--accent);margin-bottom:10px}
+.subtitle{text-align:center;color:#64748b;margin-bottom:30px}
+.controls{background:var(--card);border-radius:12px;padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.control-group{display:flex;flex-direction:column;gap:8px}
+label{font-size:.9rem;color:#94a3b8}
+select,input,button{background:#334155;border:1px solid #475569;color:#e2e8f0;padding:10px 14px;border-radius:8px;font-size:1rem}
+button{background:var(--accent);color:#0f172a;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+.plot-container{background:var(--card);border-radius:12px;padding:15px;margin-bottom:20px}
+.math-display{background:#1e2937;border-radius:8px;padding:20px;margin-bottom:15px;font-size:1.1rem}
+.info{display:flex;justify-content:space-between;align-items:center;background:#1e2937;padding:12px 20px;border-radius:8px;font-size:.95rem}
+.mse{color:#22d3ee;font-weight:600}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>eml&#9733; Interactive Explorer</h1>
+<p class="subtitle">Real-time visualization of the anti-holomorphic extension of the EML operator</p>
+<div class="controls">
+<div class="control-group">
+<label>Function</label>
+<select id="preset">
+<option value="conjz">conj(z) &#8212; Anti-holomorphic</option>
+<option value="abs2">|z|&#178; &#8212; Mixed (modulus squared)</option>
+<option value="rez">Re(z) &#8212; Mixed (real part)</option>
+<option value="z2">z&#178; &#8212; Holomorphic</option>
+<option value="expz">exp(z) &#8212; Holomorphic</option>
+<option value="absz">|z| &#8212; Mixed nonlinear</option>
+<option value="custom">Custom expression...</option>
+</select>
+<input type="text" id="custom" placeholder="emlstar or eml or conj" style="display:none;margin-top:8px">
+</div>
+<div class="control-group">
+<label>Grid Resolution</label>
+<input type="range" id="resolution" min="20" max="100" value="60" step="5">
+<span id="res-value">60 &#215; 60</span>
+<div style="display:flex;gap:10px;margin-top:10px">
+<div><label style="font-size:.8rem">X range</label><input type="text" id="x-range" value="-2,2" style="width:100px"></div>
+<div><label style="font-size:.8rem">Y range</label><input type="text" id="y-range" value="-2,2" style="width:100px"></div>
+</div>
+</div>
+</div>
+<button onclick="compute()" style="width:100%;padding:14px;font-size:1.1rem;margin-bottom:20px">Compute &amp; Visualize</button>
+<div class="plot-container"><div id="plot" style="width:100%;height:620px"></div></div>
+<div class="math-display">
+<div id="emlstar-notation" style="margin-bottom:12px;color:#22d3ee"></div>
+<div id="mathjax-display" style="font-size:1.15rem"></div>
+</div>
+<div class="info">
+<div><strong>Domain:</strong> <span id="domain-info">[-2,2] &#215; [-2,2]</span></div>
+<div class="mse"><span id="mse-display"></span></div>
+</div>
+</div>
+<script>
+function C(r,i){return{re:r,im:i||0};}
+function cadd(a,b){return C(a.re+b.re,a.im+b.im);}
+function cmul(a,b){return C(a.re*b.re-a.im*b.im,a.re*b.im+a.im*b.re);}
+function cconj(z){return C(z.re,-z.im);}
+function cabs(z){return Math.hypot(z.re,z.im);}
+function cexp(z){var r=Math.exp(z.re);return C(r*Math.cos(z.im),r*Math.sin(z.im));}
+function cln(z){var r=Math.hypot(z.re,z.im);if(r<1e-12)return C(-20,0);return C(Math.log(r),Math.atan2(z.im,z.re));}
+function eml(z,w){return cadd(cexp(z),cmul(cln(w),C(-1)));}
+function emlstar(z,w){return cadd(cexp(cconj(z)),cmul(cln(cconj(w)),C(-1)));}
+function evalf(p,z){
+  if(p==="conjz")return cconj(z);
+  if(p==="abs2")return C(cabs(z)*cabs(z),0);
+  if(p==="rez")return C(z.re,0);
+  if(p==="z2")return cmul(z,z);
+  if(p==="expz")return cexp(z);
+  if(p==="absz")return C(cabs(z),0);
+  if(p==="custom"){
+    var e=document.getElementById("custom").value;
+    if(e.indexOf("emlstar")>=0)return emlstar(z,z);
+    if(e.indexOf("eml")>=0)return eml(z,z);
+    if(e.indexOf("conj")>=0)return cconj(z);
+    if(e.indexOf("exp")>=0)return cexp(z);
+    return C(0,0);
+  }
+  return C(0,0);
+}
+var labels={"conjz":"conj(z)","abs2":"|z|\u00b2","rez":"Re(z)","z2":"z\u00b2","expz":"exp(z)","absz":"|z|"};
+function compute(){
+  var p=document.getElementById("preset").value;
+  var res=parseInt(document.getElementById("resolution").value);
+  var xr=document.getElementById("x-range").value.split(",").map(Number);
+  var yr=document.getElementById("y-range").value.split(",").map(Number);
+  var xs=[],ys=[];
+  for(var i=0;i<res;i++){xs.push(xr[0]+i*(xr[1]-xr[0])/(res-1));ys.push(yr[0]+i*(yr[1]-yr[0])/(res-1));}
+  var zM=[],cM=[];
+  for(var i=0;i<res;i++){
+    var row=[],cr=[];
+    for(var j=0;j<res;j++){
+      var z=C(xs[j],ys[i]);
+      try{var f=evalf(p,z);row.push(f.re);cr.push(cabs(f));}
+      catch(e){row.push(0);cr.push(0);}
+    }
+    zM.push(row);cM.push(cr);
+  }
+  var lbl=labels[p]||p;
+  Plotly.newPlot("plot",[{type:"surface",x:xs,y:ys,z:zM,surfacecolor:cM,colorscale:"Viridis",
+    hovertemplate:"z=%{x:.2f}+%{y:.2f}i<br>Re(f)=%{z:.3f}<extra></extra>"}],
+    {title:"f(z) = "+lbl,
+     scene:{xaxis:{title:"Re(z)"},yaxis:{title:"Im(z)"},zaxis:{title:"Re(f(z))"},camera:{eye:{x:1.5,y:1.5,z:1.2}}},
+     margin:{t:40},paper_bgcolor:"#1e2937",plot_bgcolor:"#1e2937",font:{color:"#e2e8f0"}},
+    {responsive:true});
+  updateMath(p);
+}
+function updateMath(p){
+  var ed=document.getElementById("emlstar-notation"),md=document.getElementById("mathjax-display");
+  var n="",l="";
+  if(p==="conjz"){n="f(z) = 1 - eml\u2605(0, eml(z, 1))";l="\\( f(z) = \\overline{z} \\)";}
+  else if(p==="abs2"){n="f(z) = z \u00b7 conj(z)";l="\\( f(z) = |z|^2 \\)";}
+  else if(p==="rez"){n="f(z) = (z + conj(z)) / 2";l="\\( f(z) = \\operatorname{Re}(z) \\)";}
+  else if(p==="z2"){n="f(z) = z\u00b2 (holomorphic \u2014 no eml\u2605 needed)";l="\\( f(z) = z^2 \\)";}
+  else if(p==="expz"){n="f(z) = exp(z) (holomorphic \u2014 no eml\u2605 needed)";l="\\( f(z) = e^z \\)";}
+  else if(p==="absz"){n="f(z) = sqrt(z \u00b7 conj(z))";l="\\( f(z) = |z| \\)";}
+  else{n="f(z) = "+p;l="\\( f(z) \\)";}
+  ed.innerHTML="<strong>eml\u2605 form:</strong> "+n;
+  md.innerHTML=l;
+  if(window.MathJax)MathJax.typesetPromise([md]).catch(function(){});
+}
+document.getElementById("resolution").addEventListener("input",function(){document.getElementById("res-value").textContent=this.value+" \u00d7 "+this.value;});
+document.getElementById("preset").addEventListener("change",function(){document.getElementById("custom").style.display=(this.value==="custom")?"block":"none";});
+window.onload=function(){compute();};
+</script>
+</body>
+</html>
