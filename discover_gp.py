@@ -288,6 +288,8 @@ def _setup_pset(num_vars=1):
     pset.addTerminal(25.0 + 0j, name="twentyfive")
     pset.addTerminal(2.302585 + 0j, name="ln10")
     pset.addTerminal(3.141593 + 0j, name="pi")
+    pset.addTerminal(3.0 + 0j, name="three")
+    pset.addTerminal(0.0 - 1.0j, name="neg_i")
 
     # Ephemeral random constant
     pset.addEphemeralConstant("rc", partial(_rand_const))
