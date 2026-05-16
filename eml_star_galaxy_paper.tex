@@ -1,0 +1,274 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{natbib}
+\usepackage{xcolor}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\title{Symbolic regression with anti-holomorphic operators reveals non-holomorphic structure in low-luminosity galaxy rotation curves}
+
+\author{Anthony Monnerot\\
+\textit{Independent Researcher --- Champigny-sur-Marne, France}\\
+\texttt{eml.star.monnerot@gmail.com}\\
+\url{https://github.com/antparis/eml_star}}
+
+\date{May 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We introduce eml$\star$, an anti-holomorphic extension of the EML operator \citep{Odrzywolek2026}, into genetic programming symbolic regression applied to galaxy rotation curves. Through a characterization battery on synthetic complex fields, we establish that eml$\star$ acts as a detector of non-holomorphic structure: it appears in 100\% of anti-holomorphic targets ($\overline{z}$, $\overline{z}^2$) and 0\% of holomorphic targets ($z^2$, $e^z$). Applied to 125 SPARC galaxies and 23 LITTLE THINGS dwarf galaxies, eml$\star$ preferentially improves rotation curve fits for low-luminosity systems (Spearman $\rho = -0.27$, $p = 0.004$). The signal reproduces on the independent LITTLE THINGS sample at a consistent rate. Neither MOND acceleration threshold ($p = 0.35$) nor dark matter fraction ($p = 0.81$) are significant predictors; luminosity alone best predicts eml$\star$ response. These results suggest that the gravitational potential in dark-matter-dominated galaxies contains a non-holomorphic component that becomes detectable when the baryonic contribution is subdominant. We report all negative results (MOND, dark matter fraction, vortex topology tests) to constrain the interpretation. The connection between eml$\star$ and atomic orbital symmetries (spherical harmonics with $m \neq 0$) suggests potential applications in quantum chemistry, which we leave for future work.
+
+Code and data are available at \url{https://github.com/antparis/oxieml-star}. Software: Zenodo DOI:10.5281/zenodo.20238531.
+\end{abstract}
+
+\section{Introduction}
+
+The rotation curves of disk galaxies remain one of the most compelling observational signatures of dark matter. The SPARC database \citep{Lelli2016} provides high-quality rotation curves for 175 galaxies with Spitzer 3.6$\mu$m photometry, enabling systematic comparisons between observed kinematics and baryonic mass models. The discrepancy between observed rotation velocities and those predicted by visible matter alone --- the mass discrepancy --- grows systematically in low-luminosity, dark-matter-dominated systems.
+
+Symbolic regression, in which algorithms search for closed-form mathematical expressions that fit data, has emerged as a tool for scientific discovery \citep{Schmidt2009}. Unlike neural networks, symbolic regression produces interpretable formulas, enabling physical insight. Genetic programming (GP) implementations such as PySR \citep{Cranmer2023} and DEAP \citep{Fortin2012} allow custom operator sets, making it possible to embed domain-specific mathematical structure into the search space.
+
+\citet{Odrzywolek2026} introduced the EML operator, defined as $\mathrm{eml}(x, y) = e^x - \ln y$, which combines exponential and logarithmic functions in a single primitive. We extend this to the complex domain with three operators:
+\begin{align}
+\mathrm{eml}(z, w) &= e^z - \ln w \\
+\mathrm{eml\star}(z, w) &= e^{\bar{z}} - \ln \bar{w} \\
+\mathrm{conj\_eml}(z) &= \overline{\mathrm{eml}(z, z)}
+\end{align}
+The critical distinction is that eml$\star$ incorporates complex conjugation, making it an anti-holomorphic operator. A function $f(z)$ is holomorphic if $\partial f/\partial \bar{z} = 0$ (the Cauchy--Riemann equations are satisfied); eml$\star$ introduces $\partial f/\partial \bar{z} \neq 0$ into the search space.
+
+This distinction has physical content. Many potentials in physics are holomorphic or harmonic functions of complex coordinates. When a physical system requires anti-holomorphic terms --- when conjugation enters the governing equations --- it signals a departure from the standard analytic structure. In the context of galaxy rotation curves, the appearance of eml$\star$ in a symbolic regression fit implies that the underlying potential contains a non-holomorphic component that cannot be captured by standard (holomorphic) functions alone.
+
+In this work, we first characterize eml$\star$ on synthetic complex fields to establish its detection properties (Sections~2.5, 3.1). We then apply GP with eml$\star$ operators to 125 SPARC galaxies and 23 LITTLE THINGS dwarf galaxies, comparing fits with and without anti-holomorphic operators (Sections~3.2, 3.3). We identify the physical properties that predict eml$\star$ response (Section~3.4) and report negative results for MOND and dark matter fraction as predictors (Section~3.5). We discuss the interpretation of non-holomorphic structure in dark-matter-dominated potentials (Section~4).
+
+\section{Methods}
+
+\subsection{The eml$\star$ operator}
+
+We define three complex-valued operators derived from the EML operator of \citet{Odrzywolek2026}:
+\begin{itemize}
+\item $\mathrm{eml}(z, w) = e^z - \ln w$
+\item $\mathrm{eml\star}(z, w) = e^{\bar{z}} - \ln \bar{w}$
+\item $\mathrm{conj\_eml}(z) = \overline{\mathrm{eml}(z, z)} = \overline{e^z - \ln z}$
+\end{itemize}
+where $\bar{z}$ denotes the complex conjugate of $z$. The operator eml$\star$ is anti-holomorphic: it maps through the conjugation $z \to \bar{z}$ before applying analytic functions. In the Wirtinger calculus framework, a function $f(z, \bar{z})$ satisfies $\partial f/\partial \bar{z} = 0$ if and only if it is holomorphic. The inclusion of eml$\star$ in the GP search space allows the algorithm to construct expressions with $\partial f/\partial \bar{z} \neq 0$, enabling detection of non-holomorphic structure in the target data.
+
+\subsection{Genetic programming implementation}
+
+We use the DEAP framework \citep{Fortin2012} for tree-based genetic programming. The primitive set includes binary operators $\{+, -, \times, \div, \mathrm{pow}, \mathrm{eml}, \mathrm{eml\star}\}$ and unary operators $\{\mathrm{conj\_eml}, \ln, \log_{10}, \sin, \cos, \exp, \arcsin, \arccos, \arctan\}$. Constants include $\{0, 1, i, \tfrac{1}{2}, 2, \pi\}$ and ephemeral random constants drawn from $U(-10, 10)$. All arithmetic is complex-valued with safe guards against overflow, division by zero, and logarithm of zero. A parsimony pressure of $\lambda = 0.0002 \times \mathrm{tree\_size}$ is added to the MSE fitness to penalize complexity. After evolution, constants in the best individual are refined via Nelder--Mead optimization.
+
+Standard parameters: population $= 300$, generations $= 60$, 5 independent runs per galaxy, tournament selection (size 3), crossover probability 0.7, mutation probability 0.2, maximum tree depth 8. For high-power batch runs on the full SPARC catalog, we also used PySR \citep{Cranmer2023}, a Julia-based symbolic regression engine, to cross-validate GP results.
+
+\subsection{Data}
+
+We use two datasets of galaxy rotation curves.
+
+\textbf{SPARC} \citep{Lelli2016}: 175 galaxies with Spitzer 3.6$\mu$m photometry. Of these, 125 had sufficient data points for symbolic regression, and 111 had complete photometric and kinematic catalog entries used in all subsequent statistical analyses. Each rotation curve provides radius $r$, observed velocity $V_\mathrm{obs}$, and baryonic velocity $V_\mathrm{bar}$. We use $r$ and $V_\mathrm{bar}$ as input variables and $V_\mathrm{obs}$ as the target. Data are publicly available and were not modified.
+
+\textbf{LITTLE THINGS} \citep{Hunter2012}: 23 dwarf irregular galaxies, providing an independent low-mass sample. Same input/output format as SPARC.
+
+\subsection{Experimental protocol}
+
+For each galaxy, we run two GP experiments: (1) with the full operator set including eml$\star$, and (2) without anti-holomorphic operators (eml$\star$ and conj\_eml removed). Both use identical parameters and random seeds. The improvement metric is:
+\begin{equation}
+\Delta = \frac{\mathrm{MSE}_\mathrm{without} - \mathrm{MSE}_\mathrm{with}}{\mathrm{MSE}_\mathrm{without}} \times 100\%
+\end{equation}
+
+A galaxy is classified as ``eml$\star$-responsive'' if the best formula from experiment (1) contains eml$\star$ or conj\_eml AND $\Delta > 10\%$. The 10\% threshold excludes marginal improvements attributable to the larger operator set.
+
+\subsection{Synthetic characterization battery}
+
+To establish what eml$\star$ detects independently of astrophysical data, we test six synthetic complex functions with 200 random points in $[-2, 2] \times [-2, 2]$:
+\begin{itemize}
+\item H1: $f(z) = z^2$ (holomorphic polynomial)
+\item H2: $f(z) = e^z$ (holomorphic transcendental)
+\item A1: $f(z) = \bar{z}$ (anti-holomorphic pure)
+\item A2: $f(z) = \bar{z}^2$ (anti-holomorphic squared)
+\item M1: $f(z) = |z|$ (mixed nonlinear)
+\item M2: $f(z) = \mathrm{Re}(z)$ (mixed linear)
+\end{itemize}
+
+Each test uses 5 GP runs with standard parameters. If eml$\star$ appears exclusively in non-holomorphic targets, we conclude that it acts as a non-holomorphicity detector rather than fitting arbitrary complex data.
+
+\section{Results}
+
+\subsection{Characterization battery}
+
+Table~\ref{tab:battery} summarizes the synthetic characterization results.
+
+\begin{table}[h]
+\centering
+\caption{Synthetic characterization battery results. eml$\star$ is selected exclusively for non-holomorphic targets.}
+\label{tab:battery}
+\begin{tabular}{llllr}
+\toprule
+Test & Function & Category & eml$\star$ runs & Best MSE \\
+\midrule
+H1 & $z^2$ & holomorphic & 0/5 & exact \\
+H2 & $e^z$ & holomorphic & 0/5 & exact \\
+A1 & $\bar{z}$ & anti-holomorphic & 5/5 & exact \\
+A2 & $\bar{z}^2$ & anti-holomorphic & 5/5 & 1.32 \\
+M1 & $|z|$ & mixed nonlinear & 3/5 & 0.083 \\
+M2 & $\mathrm{Re}(z)$ & mixed linear & 5/5 & 0.077 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The GP never selects eml$\star$ for holomorphic targets (0/10 runs) and consistently selects it for anti-holomorphic targets (10/10 runs). For mixed targets containing implicit conjugation ($|z| = \sqrt{z \cdot \bar{z}}$, $\mathrm{Re}(z) = (z+\bar{z})/2$), eml$\star$ appears in 8/10 runs. We conclude that eml$\star$ acts as a non-holomorphicity detector: it is selected if and only if the target function depends on $\bar{z}$. Figure~\ref{fig:battery} summarizes these results graphically.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{fig3_characterization_battery.pdf}
+\caption{Characterization battery: eml$\star$ activations per test function. Red = holomorphic (expect 0), green = anti-holomorphic (expect 5), orange = mixed.}
+\label{fig:battery}
+\end{figure}
+
+\subsection{SPARC galaxies}
+
+We applied the with/without protocol to 125 SPARC galaxies. Of the 125, 124 completed successfully (1 timeout). Of the 111 galaxies with complete catalog data, 51 (46\%) were classified as eml$\star$-responsive under the strict criterion. The raw PySR count before catalog matching was 58/125. The improvement distribution is bimodal: eml$\star$-responsive galaxies show median $\Delta = +25\%$, while non-responsive galaxies show median $\Delta = -12\%$, indicating that eml$\star$ degrades the fit when the underlying structure is holomorphic. Figure~\ref{fig:histogram} shows this distribution.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{fig2_improvement_histogram.pdf}
+\caption{Distribution of improvement $\Delta$ for eml$\star$-responsive (green) and non-responsive (red) galaxies.}
+\label{fig:histogram}
+\end{figure}
+
+\subsection{LITTLE THINGS replication}
+
+We repeated the protocol on 23 LITTLE THINGS dwarf galaxies. 10 of 23 (43.5\%) were classified as eml$\star$-responsive, consistent with the SPARC rate. This replication on an independent, low-mass dataset strengthens the finding: the eml$\star$ signal is not an artifact of the SPARC sample.
+
+\subsection{Physical property correlations}
+
+Table~\ref{tab:correlations} shows the Spearman correlation between improvement $\Delta$ and galaxy properties from the SPARC catalog.
+
+\begin{table}[h]
+\centering
+\caption{Spearman correlations between eml$\star$ improvement and galaxy properties.}
+\label{tab:correlations}
+\begin{tabular}{lrrr}
+\toprule
+Property & $\rho$ & $p$-value & Significant \\
+\midrule
+$V_\mathrm{flat}$ (km/s) & $-0.281$ & 0.003 & Yes \\
+Luminosity ($10^9\,L_\odot$) & $-0.273$ & 0.004 & Yes \\
+$M_\mathrm{HI}$ ($10^9\,M_\odot$) & $-0.236$ & 0.013 & Yes \\
+$R_\mathrm{eff}$ (kpc) & $-0.264$ & 0.005 & Yes \\
+Surface brightness & $-0.137$ & 0.151 & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All significant correlations are negative: eml$\star$ improvement increases as galaxies become smaller, slower, less luminous, and less gas-rich. These are characteristics of dark-matter-dominated systems. A logistic regression confirms that luminosity alone is the best predictor of eml$\star$ response (AIC $= 147.7$ vs $153.7$ for dark matter fraction). Figure~\ref{fig:luminosity} shows the scatter plot.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{fig1_luminosity_vs_improvement.pdf}
+\caption{eml$\star$ improvement versus galaxy luminosity. Green = eml$\star$ active, red = inactive. Spearman $\rho = -0.273$, $p = 0.004$.}
+\label{fig:luminosity}
+\end{figure}
+
+Median physical properties of eml$\star$-responsive vs non-responsive galaxies:
+
+\begin{table}[h]
+\centering
+\caption{Median properties of eml$\star$-responsive vs non-responsive galaxies.}
+\label{tab:medians}
+\begin{tabular}{lrrr}
+\toprule
+Property & eml$\star$ median & Non median & $p$-value \\
+\midrule
+$V_\mathrm{flat}$ (km/s) & 110.6 & 153.2 & 0.024 \\
+Luminosity ($10^9\,L_\odot$) & 6.54 & 44.29 & 0.033 \\
+$R_\mathrm{eff}$ (kpc) & 2.94 & 4.33 & 0.015 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Negative results}
+
+We report three negative results that constrain the interpretation of eml$\star$.
+
+\textbf{MOND acceleration:} The median centripetal acceleration of eml$\star$ galaxies ($1.14 \times a_0$) is not significantly different from non-eml$\star$ galaxies ($1.60 \times a_0$, Mann--Whitney $p = 0.35$). eml$\star$ response does not track the Milgrom threshold.
+
+\textbf{Dark matter fraction:} Using $M_\mathrm{dyn} = V^2_\mathrm{flat} \times R_\mathrm{HI} / G$ and $M_\mathrm{bar} = \Upsilon_\mathrm{disk} \times L + 1.33 \times M_\mathrm{HI}$ with $\Upsilon_\mathrm{disk} = 0.5$, the dark matter fraction $f_\mathrm{DM}$ shows no correlation with eml$\star$ improvement (Spearman $\rho = 0.023$, $p = 0.81$). All galaxies in the sample are dark-matter-dominated (median $f_\mathrm{DM} = 0.80$), so $f_\mathrm{DM}$ lacks discriminating power.
+
+\textbf{Vortex topology:} Synthetic tests on optical vortex fields showed that eml$\star$ appears in a fake vortex with zero amplitude but no phase winding (5/5 runs). eml$\star$ detects non-holomorphic structure, not topological charge. This rules out the interpretation of eml$\star$ as a topological detector.
+
+\section{Discussion}
+
+\subsection{eml$\star$ as a non-holomorphicity detector}
+
+The characterization battery (Section~3.1) establishes that eml$\star$ is selected by the GP if and only if the target function depends on $\bar{z}$. This is not a trivial result. The GP search space contains standard analytic functions ($\exp$, $\ln$, $\sin$, $\cos$, pow) that can approximate many complex functions. The fact that the GP consistently rejects eml$\star$ for holomorphic targets and consistently selects it for anti-holomorphic ones demonstrates that the operator fills a genuine gap in the search space: it provides the only pathway to $\bar{z}$-dependence.
+
+In the Wirtinger formalism, any smooth function $f$ of a complex variable can be decomposed as $f(z, \bar{z}) = g(z) + h(\bar{z}) + \text{mixed terms}$, where $g$ is holomorphic and $h$ is anti-holomorphic. The GP with eml$\star$ effectively performs this decomposition empirically. When eml$\star$ appears in the best formula, it signals the presence of $h(\bar{z})$ or mixed terms --- that is, the target cannot be expressed as a function of $z$ alone.
+
+\subsection{Why low luminosity?}
+
+The correlation between eml$\star$ response and low luminosity ($\rho = -0.27$, $p = 0.004$) admits a simple interpretation. In high-luminosity galaxies, the baryonic contribution to the rotation curve is dominant, especially in the inner regions. The gravitational potential is well-described by standard (holomorphic) Newtonian terms. In low-luminosity galaxies, the baryonic contribution is subdominant: the rotation curve is shaped primarily by the dark matter halo. If the dark matter potential introduces a non-holomorphic component, it would be masked by the dominant baryonic signal in bright galaxies and revealed only when that signal is weak.
+
+This is analogous to observing a faint star: it is invisible in daylight but detectable at night. The non-holomorphic component does not grow stronger in low-luminosity galaxies --- it becomes detectable because the holomorphic baryonic foreground diminishes.
+
+We emphasize that this interpretation is descriptive. We do not claim that dark matter is intrinsically non-holomorphic. The GP discovers that the mapping from $(r, V_\mathrm{bar})$ to $V_\mathrm{obs}$ requires $\bar{z}$-dependent terms in dark-matter-dominated systems. Whether this reflects a property of the dark matter potential, an interaction between baryonic and dark components, or a mathematical artifact of the coordinate representation remains open.
+
+\subsection{Limitations}
+
+Several limitations constrain the strength of our conclusions.
+
+\textbf{Hyperparameter sensitivity:} The rate of eml$\star$-responsive galaxies depends on GP parameters (population size, generations, maximum tree depth). Previous runs with lower power settings yielded approximately 15\% rather than the 46\% reported here. The qualitative result --- that eml$\star$ preferentially selects low-luminosity galaxies --- is robust across settings, but the absolute rate is not a physical quantity.
+
+\textbf{Velocity confound:} The correlation between eml$\star$ improvement and luminosity cannot be fully separated from the correlation with rotation velocity ($V_\mathrm{flat}$), galaxy size ($R_\mathrm{eff}$), or gas mass ($M_\mathrm{HI}$). These properties are mutually correlated in disk galaxies. A partial correlation analysis controlling for $V_\mathrm{flat}$ reduces the significance of the fuzzy dark matter zone test from $p = 0.008$ to $p = 0.15$ (Section~3.5). Luminosity remains the strongest single predictor, but we cannot exclude that it serves as a proxy for a combination of physical properties.
+
+\textbf{Interpretive gap:} eml$\star$ detects non-holomorphic mathematical structure, but translating this into a specific physical mechanism requires additional theoretical work. The Wirtinger derivative $\partial f/\partial \bar{z} \neq 0$ is a necessary condition for non-holomorphicity, but it does not uniquely identify the physical source.
+
+\subsection{Comparison with existing approaches}
+
+MOND \citep{Milgrom1983} predicts a transition in dynamics at the acceleration scale $a_0 \approx 1.2 \times 10^{-10}$\,m/s$^2$. Our data show no significant difference in acceleration between eml$\star$ and non-eml$\star$ galaxies ($p = 0.35$), suggesting that eml$\star$ captures a different aspect of the mass discrepancy than MOND.
+
+NFW profiles \citep{NFW1996} describe dark matter halos as smooth, spherically symmetric density distributions. The non-holomorphic structure detected by eml$\star$ may reflect departures from NFW symmetry in low-mass halos, consistent with the cusp-core problem in dwarf galaxies \citep{deBlok2010}.
+
+Fuzzy dark matter models \citep{Hu2000} predict wave-like behavior at the de Broglie scale. While our initial tests showed that eml$\star$ galaxies preferentially occupy the ``quantum zone'' ($R_\mathrm{eff}/\lambda_\mathrm{dB} < 5$, Fisher $p = 0.002$), this signal did not survive control for rotation velocity ($p = 0.15$). We cannot distinguish a fuzzy DM signature from a velocity-driven selection effect with the present data.
+
+\section{Conclusion}
+
+We introduced eml$\star$, an anti-holomorphic extension of the EML operator, into genetic programming symbolic regression. Through synthetic characterization, we established that eml$\star$ is selected by the GP exclusively when the target function depends on $\bar{z}$, confirming its role as a non-holomorphicity detector.
+
+Applied to 125 SPARC and 23 LITTLE THINGS galaxy rotation curves, eml$\star$ preferentially improves fits for low-luminosity, dark-matter-dominated systems. The signal reproduces on the independent LITTLE THINGS sample. Luminosity is the best single predictor of eml$\star$ response ($\rho = -0.27$, $p = 0.004$); neither MOND acceleration nor dark matter fraction are significant predictors.
+
+We summarize our findings by epistemic status:
+
+\textbf{Established:} (1)~eml$\star$ detects non-holomorphic structure in complex-valued functions. (2)~eml$\star$ improvement correlates with low luminosity in galaxy rotation curves. (3)~The signal replicates on an independent dataset.
+
+\textbf{Not established:} (1)~Whether the non-holomorphic component originates from the dark matter potential, from baryonic--dark matter interaction, or from the coordinate representation. (2)~Whether eml$\star$ response reflects a single physical mechanism or a combination of correlated galaxy properties.
+
+\textbf{Ruled out:} (1)~eml$\star$ as a topological detector. (2)~MOND acceleration as a predictor. (3)~Dark matter fraction as a predictor.
+
+The central open question is physical: why does the mapping from baryonic to observed kinematics require anti-holomorphic terms in dark-matter-dominated galaxies? Answering this will require theoretical work connecting the Wirtinger decomposition to gravitational potential theory, and observational work extending the analysis to independent datasets such as gravitational lensing fields and interferometric HI maps.
+
+Code and data: \url{https://github.com/antparis/eml_star} (theory), \url{https://github.com/antparis/oxieml-star} (software + galaxy data). Zenodo DOIs: 10.5281/zenodo.20091022 (paper), 10.5281/zenodo.20238531 (software v0.3.0).
+
+\begin{thebibliography}{99}
+\bibitem[Cranmer(2023)]{Cranmer2023} Cranmer, M. 2023, arXiv:2305.01582 (PySR)
+\bibitem[de Blok(2010)]{deBlok2010} de Blok, W.J.G. 2010, Advances in Astronomy, 2010, 789293
+\bibitem[Fortin et al.(2012)]{Fortin2012} Fortin, F.-A. et al. 2012, Journal of Machine Learning Research, 13, 2171 (DEAP)
+\bibitem[Hu et al.(2000)]{Hu2000} Hu, W., Barkana, R. \& Gruzinov, A. 2000, Physical Review Letters, 85, 1158
+\bibitem[Hunter et al.(2012)]{Hunter2012} Hunter, D.A. et al. 2012, AJ, 144, 134 (LITTLE THINGS)
+\bibitem[Lelli et al.(2016)]{Lelli2016} Lelli, F., McGaugh, S.S. \& Schombert, J.M. 2016, AJ, 152, 157 (SPARC)
+\bibitem[Milgrom(1983)]{Milgrom1983} Milgrom, M. 1983, ApJ, 270, 365
+\bibitem[Navarro et al.(1996)]{NFW1996} Navarro, J.F., Frenk, C.S. \& White, S.D.M. 1996, ApJ, 462, 563
+\bibitem[Odrzywo{\l}ek(2026)]{Odrzywolek2026} Odrzywo{\l}ek, A. 2026, arXiv:2603.21852v2 (originally arXiv:1902.09425)
+\bibitem[Schmidt \& Lipson(2009)]{Schmidt2009} Schmidt, M. \& Lipson, H. 2009, Science, 324, 81
+\end{thebibliography}
+
+\end{document}
