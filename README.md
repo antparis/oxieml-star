@@ -93,6 +93,10 @@ Using genetic programming (PySR + DEAP) with eml★ operators on **125 SPARC gal
 | `galaxy_analysis.py` | 9-panel per-galaxy diagnostics |
 | `make_3d_viz.py` | 3D interactive visualization |
 
+### Galaxy Paper
+
+[**eml★ galaxy rotation curves paper (PDF)**](eml_star_galaxy_paper.pdf) — "Symbolic regression with anti-holomorphic operators reveals non-holomorphic structure in low-luminosity galaxy rotation curves"
+
 ### Interactive Demo
 
 [**eml★ Interactive Explorer**](https://antparis.github.io/oxieml-star/emlstar_explorer.html) — Try eml★ operators in your browser (3D visualization, no installation needed).
