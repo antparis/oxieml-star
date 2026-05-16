@@ -66,6 +66,38 @@ DOI: [10.5281/zenodo.20091022](https://doi.org/10.5281/zenodo.20091022)
 GitHub: [antparis/eml_star](https://github.com/antparis/eml_star)
 
 
+
+---
+
+## Application: Galaxy Rotation Curves (May 2026)
+
+The eml★ framework was applied to real astrophysical data — galaxy rotation curves — demonstrating its first empirical application.
+
+### What we found
+
+Using genetic programming (PySR + DEAP) with eml★ operators on **125 SPARC galaxies** and **23 LITTLE THINGS dwarf galaxies**:
+
+1. **eml★ is a non-holomorphicity detector** — 0/10 false positives on holomorphic functions, 10/10 detection on anti-holomorphic functions.
+2. **Low-luminosity galaxies need anti-holomorphic terms** — Spearman rho = -0.27, p = 0.004.
+3. **Signal replicates independently** — 43.5% on LITTLE THINGS, consistent with SPARC.
+4. **MOND and dark matter fraction ruled out** as predictors (p = 0.35 and p = 0.81).
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `discover_gp.py` | GP engine (DEAP) with eml★ operators |
+| `pysr_complex_wrapper.py` | PySR (Julia) wrapper for high-power batch runs |
+| `meta_analysis.py` | Statistical analysis + Plotly dashboard |
+| `formula_translator.py` | GP formulas to LaTeX |
+| `galaxy_analysis.py` | 9-panel per-galaxy diagnostics |
+| `make_3d_viz.py` | 3D interactive visualization |
+
+### Paper
+
+[Draft on GitHub](https://github.com/antparis/oxieml-star/blob/master/eml_star_paper_draft3.md) |
+[eml★ theory on Zenodo (DOI: 10.5281/zenodo.20091022)](https://zenodo.org/records/20091023)
+
 ## Related Work
 
 - **OxiEML** (COOLJAPAN OU, 2026): The original EML operator implementation in Rust.
