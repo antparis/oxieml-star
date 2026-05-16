@@ -1,4 +1,5 @@
 """
+from formula_translator import translate_formula, translate_to_latex, annotate_formula
 discover_gp — Genetic Programming symbolic regression with eml/eml★.
 
 Uses DEAP. Works on complex-valued data.
@@ -17,7 +18,11 @@ Usage:
 CSV format: z_real,z_imag,target_real,target_imag
 """
 
+_DISABLE_EMLSTAR = False
+
+
 import numpy as np
+from formula_translator import translate_formula, annotate_formula
 import warnings
 import random
 import time
@@ -249,7 +254,8 @@ def _setup_pset(num_vars=1):
 
     # Binary operators
     pset.addPrimitive(safe_eml, 2, name="eml")
-    pset.addPrimitive(safe_eml_star, 2, name="eml_star")
+    if not _DISABLE_EMLSTAR:
+        pset.addPrimitive(safe_eml_star, 2, name="eml_star")
     pset.addPrimitive(safe_add, 2, name="add")
     pset.addPrimitive(safe_sub, 2, name="sub")
     pset.addPrimitive(safe_mul, 2, name="mul")
@@ -257,7 +263,8 @@ def _setup_pset(num_vars=1):
     pset.addPrimitive(safe_pow, 2, name="pow")
 
     # Unary operators
-    pset.addPrimitive(safe_conj_eml, 1, name="conj_eml")
+    if not _DISABLE_EMLSTAR:
+        pset.addPrimitive(safe_conj_eml, 1, name="conj_eml")
     pset.addPrimitive(safe_ln, 1, name="ln")
     pset.addPrimitive(safe_log10, 1, name="log10")
     pset.addPrimitive(safe_sin, 1, name="sin")
@@ -266,6 +273,10 @@ def _setup_pset(num_vars=1):
     pset.addPrimitive(safe_arcsin, 1, name="arcsin")
     pset.addPrimitive(safe_arccos, 1, name="arccos")
     pset.addPrimitive(safe_arctan, 1, name="arctan")
+    pset.addPrimitive(lambda z: np.conjugate(z), 1, name="conj")
+    pset.addPrimitive(lambda z: np.asarray(np.real(z), dtype=complex), 1, name="real_part")
+    pset.addPrimitive(lambda z: np.asarray(np.imag(z), dtype=complex), 1, name="imag_part")
+    pset.addPrimitive(lambda z: z * np.conjugate(z), 1, name="abs2")
 
     # Constants
     pset.addTerminal(0.0 + 0j, name="zero")
@@ -592,6 +603,23 @@ def run_gp(var_data, targets, num_vars=1, pop=300, gen=40, runs=10,
             print(f"  Best MSE: {best['mse']:.4e}")
         print(f"  Formula: {best['formula']}")
         print(f"  Exact: {exact}/{runs} | eml★: {with_star}/{runs}")
+    try:
+        best = all_results[0]
+        translated = translate_formula(best['formula'])
+        print(f"  Translated: {translated}")
+        for ann in annotate_formula(best['formula']):
+            print(f"    - {ann}")
+        has = 'eml_star' in best['formula'] or 'conj_eml' in best['formula']
+        print(f"  eml★ diagnostic: {'YES' if has else 'NO'}")
+    except:
+        pass
+        # Formula translation
+        try:
+            best = all_results[0]
+            print(f"  Translated: {translate_formula(best['formula'])}")
+            for ann in annotate_formula(best['formula']):
+                print(f"    - {ann}")
+        except: pass
         print(f"{'─'*60}")
 
     return all_results
@@ -879,6 +907,7 @@ if __name__ == "__main__":
 
         csv_path = sys.argv[2]
         rounds = 3
+
         i = 3
         while i < len(sys.argv) - 1:
             if sys.argv[i] == "--rounds":
@@ -955,6 +984,7 @@ if __name__ == "__main__":
                 gen = int(sys.argv[i + 1])
             elif sys.argv[i] == "--runs":
                 runs = int(sys.argv[i + 1])
+
             i += 2
 
         print(f"Loading {csv_path}...")
@@ -962,6 +992,11 @@ if __name__ == "__main__":
         print(f"Loaded {len(targets)} points, {num_vars} variable(s)")
         print(f"Settings: pop={pop}, gen={gen}, runs={runs}\n")
 
+        if "--no-emlstar" in sys.argv:
+            import discover_gp
+            discover_gp._DISABLE_EMLSTAR = True
+            globals()['_DISABLE_EMLSTAR'] = True
+            print("eml★ operators DISABLED")
         results = run_gp(var_data, targets, num_vars=num_vars,
                         pop=pop, gen=gen, runs=runs)
 
