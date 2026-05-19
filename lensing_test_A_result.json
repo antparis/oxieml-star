@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "test_name": "lensing_A",
+  "best_equation": "my_abs2(x1)",
+  "best_mse": 0.0,
+  "complexity": 2,
+  "x0_used_in_best": false,
+  "x1_used_in_best": true,
+  "specificity_check": "OK",
+  "timestamp": "2026-05-19T21:27:00Z",
+  "feature_mapping": {"x0": "dz_deg", "x1": "gamma"},
+  "dataset_stats": {
+    "n_pairs_sampled": 5000,
+    "angular_match_arcmin": 10.0
+  },
+  "source_fits": "data/DEIMOS_GAMA_rband_shape_catalogue_size_0.5.fits",
+  "lens_csv": "data/lens_catalog.csv",
+  "output_csv": "data/lensing_test_A.csv",
+  "output_dir": "pysr_output_lensing_A",
+  "session_id": "20260519_211308_Bfw1Ed",
+  "full_pareto_front": [
+    {"complexity": 1, "loss": 0.017950638819874645, "equation": "0.08880859879714474 + 7.514301680888735e-14im"},
+    {"complexity": 2, "loss": 0.0, "equation": "my_abs2(x1)"}
+  ],
+  "notes": "Run stopped early (Ctrl-C / q). PySR found exact solution at complexity 2 within first iterations. Side-car JSON writer did not flush before shutdown; this JSON reconstructed from hall_of_fame.csv post-run. Specificity check confirmed: my_abs2 depends on x1 (gamma) only, ignores x0 (dz)."
+}
