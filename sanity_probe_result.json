@@ -1,0 +1,40 @@
+{
+  "status": "OK",
+  "best_equation": "((sin(x0 - (sin(x1 * (0.5082294994447203 + 0.13386443546297574j)) * (0.5082294994447203 + 0.13386443546297574j))) * (-2.167941253059123e-18 + 8.869070546924895e-18j)) + x0) * x1",
+  "best_loss": 1.5514499449534658e-31,
+  "best_complexity": 15,
+  "uses_x0": true,
+  "uses_x1": true,
+  "loss_threshold": 1e-20,
+  "n_samples": 200,
+  "dtype": "complex128",
+  "shape": [
+    200,
+    2
+  ],
+  "pysr_version": "1.5.10",
+  "seeds_used": {
+    "numpy": 42,
+    "python_random": 42,
+    "pysr_random_state": 42
+  },
+  "timestamp": "2026-05-19T14:02:14.830392+00:00",
+  "top3_pareto": [
+    {
+      "complexity": 1,
+      "loss": 40.761386228362966,
+      "equation": "0.31513289455043436 + 0.37792897635807643j"
+    },
+    {
+      "complexity": 3,
+      "loss": 2.3009061871549702e-31,
+      "equation": "x1 * x0"
+    },
+    {
+      "complexity": 5,
+      "loss": 2.10604836304854e-31,
+      "equation": "(x0 * (1.0 + 1.773814109384979e-17j)) * x1"
+    }
+  ],
+  "notes": "deterministic=False + multithreading=True; seeds logged for traceability only."
+}
