@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-05-20T22:30:08.123022+00:00",
+  "pysr_config": {
+    "niterations": 100,
+    "population_size": 50,
+    "precision": 64,
+    "verbosity": 1,
+    "progress": true,
+    "deterministic": true,
+    "parallelism": "serial",
+    "random_state": 42,
+    "maxsize": 20,
+    "maxdepth": 8
+  },
+  "toolbox_A": "{eml, emlstar} (native anti-holomorphic, no conj, no Re)",
+  "toolbox_B": "{eml, my_real} (real-part bridge, no conj, no emlstar)",
+  "runs": {
+    "anti_conj_linear": {
+      "A_emlstar": {
+        "best_equation": "log(emlstar(x0, 1.0 - 0.0j)) + (-0.7 + 0.27015j)",
+        "best_mse": 2.0918706262713475e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(my_real(x0 + x0) - x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.0356424965207776e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "anti_mod_squared": {
+      "A_emlstar": {
+        "best_equation": "((1.0 + 4.803583506633742e-25j) - emlstar(-2.6656271988775893e-24 - 1.1944803768528735e-27j, exp(x0))) * x0",
+        "best_mse": 1.4548578208099965e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0)))",
+        "best_mse": 1.0278771391749024e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "anti_mixed_deg3": {
+      "A_emlstar": {
+        "best_equation": "x0 * log(emlstar(x0 * x0, 1.0 + 0.0j))",
+        "best_mse": 2.7196000276882276e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0))) * (my_real(x0 + x0) - x0)",
+        "best_mse": 2.677986333072985e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "holo_control": {
+      "A_emlstar": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.8102053702451103e-32,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.8102053702451103e-32,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    },
+    "anti_conj_cube": {
+      "A_emlstar": {
+        "best_equation": "log(emlstar(x0 * (x0 * x0), x0 / x0))",
+        "best_mse": 2.9573071352794704e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "my_real((x0 * x0) * (x0 + x0)) - (x0 * (x0 * x0))",
+        "best_mse": 1.9208524250595203e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "anti_exp_conj": {
+      "A_emlstar": {
+        "best_equation": "emlstar(x0, 1.0 - 6.2891446163050155e-18j)",
+        "best_mse": 1.7144232047014795e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(x0 + x0) - x0)",
+        "best_mse": 1.7148852915307876e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "anti_re_z2": {
+      "A_emlstar": {
+        "best_equation": "(x0 / sin(sin(x0 * exp(emlstar(-0.6364830216254274 + 0.038698020455068254j, x0))))) / exp(emlstar(-1.895538354219892 + 0.01715587556669918j, x0))",
+        "best_mse": 0.0057494774492765,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "my_real(x0 * x0)",
+        "best_mse": 7.291888388023667e-33,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "holo_exp": {
+      "A_emlstar": {
+        "best_equation": "exp(x0)",
+        "best_mse": 2.410157256812989e-32,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(x0)",
+        "best_mse": 2.410157256812989e-32,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    },
+    "holo_trap_inv": {
+      "A_emlstar": {
+        "best_equation": "(0.9999999999999999 + 1.56521667052645e-17j) / (((1.4409573955674776e-17 - 8.828042698394004e-18j) / sin((0.8414709848078964 - 2.2021212357751246e-18j) / x0)) + x0)",
+        "best_mse": 1.917667253535984e-31,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(1.9999999999999996 + 9.207736085415477e-34j) / ((x0 + x0) + ((log(x0) * (-4.433700198862923e-18 + 2.8332217598191838e-18j)) / x0))",
+        "best_mse": 2.157735624810068e-31,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    }
+  },
+  "routes_agree": true,
+  "datasets_complete": [
+    "anti_conj_linear",
+    "anti_mod_squared",
+    "anti_mixed_deg3",
+    "holo_control",
+    "anti_conj_cube",
+    "anti_exp_conj",
+    "anti_re_z2",
+    "holo_exp",
+    "holo_trap_inv"
+  ]
+}
