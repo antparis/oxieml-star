@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-05-20T15:01:50.578079+00:00",
+  "pysr_config": {
+    "niterations": 100,
+    "population_size": 50,
+    "precision": 64,
+    "verbosity": 0,
+    "deterministic": true,
+    "parallelism": "serial",
+    "random_state": 42,
+    "maxsize": 20,
+    "maxdepth": 8
+  },
+  "toolbox_A": "{eml, emlstar} (native anti-holomorphic, no conj, no Re)",
+  "toolbox_B": "{eml, my_real} (real-part bridge, no conj, no emlstar)",
+  "runs": {
+    "kids_abs2": {
+      "A_emlstar": {
+        "best_equation": "x0 / exp(emlstar(-38.676997813899455 - 42.03963398410718j, x0))",
+        "best_mse": 1.133855013445118e-33,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0)))",
+        "best_mse": 5.821550312748923e-34,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    }
+  },
+  "routes_agree": true,
+  "datasets_complete": [
+    "kids_abs2"
+  ]
+}
