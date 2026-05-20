@@ -61,3 +61,14 @@ eml_star_decomp_log_phase1.txt
 
 # Spurious git file
 master
+data/_archive_suspect/
+outputs/
+
+# Exceptions: validated test datasets (used in committed result JSONs)
+!data/fractal_mandelbrot.csv
+!data/fractal_tricorn.csv
+!data/layer_tricorn_1.csv
+!data/layer_tricorn_2.csv
+!data/wm_larmor.csv
+!data/wm_rabi.csv
+!data/kids_abs2_test.csv
