@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-05-20T14:02:35.417424+00:00",
+  "pysr_config": {
+    "niterations": 100,
+    "population_size": 50,
+    "precision": 64,
+    "verbosity": 0,
+    "deterministic": true,
+    "parallelism": "serial",
+    "random_state": 42,
+    "maxsize": 20,
+    "maxdepth": 8
+  },
+  "toolbox_A": "{eml, emlstar} (native anti-holomorphic, no conj, no Re)",
+  "toolbox_B": "{eml, my_real} (real-part bridge, no conj, no emlstar)",
+  "runs": {
+    "anti_conj_linear": {
+      "A_emlstar": {
+        "best_equation": "log(emlstar(x0, 1.0 - 0.0j)) + (-0.7 + 0.27015j)",
+        "best_mse": 2.0918706262713475e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(my_real(x0 + x0) - x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.0356424965207776e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "anti_mod_squared": {
+      "A_emlstar": {
+        "best_equation": "((1.0 + 4.803583506633742e-25j) - emlstar(-2.6656271988775893e-24 - 1.1944803768528735e-27j, exp(x0))) * x0",
+        "best_mse": 1.4548578208099965e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0)))",
+        "best_mse": 1.0278771391749024e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "anti_mixed_deg3": {
+      "A_emlstar": {
+        "best_equation": "x0 * log(emlstar(x0 * x0, 1.0 + 0.0j))",
+        "best_mse": 2.7196000276882276e-32,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0))) * (my_real(x0 + x0) - x0)",
+        "best_mse": 2.677986333072985e-32,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "holo_control": {
+      "A_emlstar": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.8102053702451103e-32,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.8102053702451103e-32,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    }
+  },
+  "routes_agree": true,
+  "datasets_complete": [
+    "anti_conj_linear",
+    "anti_mod_squared",
+    "anti_mixed_deg3",
+    "holo_control"
+  ]
+}

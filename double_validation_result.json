@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-05-20T11:21:13.364299+00:00",
+  "pysr_config": {
+    "niterations": 100,
+    "population_size": 50,
+    "precision": 64,
+    "verbosity": 0,
+    "deterministic": true,
+    "parallelism": "serial",
+    "random_state": 42,
+    "maxsize": 20,
+    "maxdepth": 8
+  },
+  "toolbox_A": "{eml, emlstar} (native anti-holomorphic, no conj, no Re)",
+  "toolbox_B": "{eml, my_real} (real-part bridge, no conj, no emlstar)",
+  "runs": {
+    "mandelbrot": {
+      "A_emlstar": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.7702065653609234e-32,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.7734595814076148e-32,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    },
+    "tricorn": {
+      "A_emlstar": {
+        "best_equation": "emlstar(log(x0 * x0), 1.9407156604314855 + 0.5374222661935977j)",
+        "best_mse": 3.956869451048682e-31,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "((x0 - my_real(x0 * (1.999999999953178 + 0.0j))) * (x0 - my_real(x0 * (1.999999999953178 + 0.0j)))) + (-0.6999999999111743 + 0.2701500000024809j)",
+        "best_mse": 4.962783692796461e-21,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    }
+  },
+  "routes_agree": true
+}

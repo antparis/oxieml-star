@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-05-20T11:51:59.758831+00:00",
+  "pysr_config": {
+    "niterations": 100,
+    "population_size": 50,
+    "precision": 64,
+    "verbosity": 0,
+    "deterministic": true,
+    "parallelism": "serial",
+    "random_state": 42,
+    "maxsize": 20,
+    "maxdepth": 8
+  },
+  "toolbox_A": "{eml, emlstar} (native anti-holomorphic, no conj, no Re)",
+  "toolbox_B": "{eml, my_real} (real-part bridge, no conj, no emlstar)",
+  "runs": {
+    "mandelbrot": {
+      "A_emlstar": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.7702065653609234e-32,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.7734595814076148e-32,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    },
+    "tricorn": {
+      "A_emlstar": {
+        "best_equation": "emlstar(log(x0 * x0), 1.9407156604314855 + 0.5374222661935977j)",
+        "best_mse": 3.956869451048682e-31,
+        "anti_holomorphic": true,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "((x0 - my_real(x0 * (1.999999999953178 + 0.0j))) * (x0 - my_real(x0 * (1.999999999953178 + 0.0j)))) + (-0.6999999999111743 + 0.2701500000024809j)",
+        "best_mse": 4.962783692796461e-21,
+        "anti_holomorphic": true,
+        "marker": "my_real"
+      }
+    },
+    "wm_damped": {
+      "A_emlstar": {
+        "best_equation": "x0 * (0.9851037084132391 - 0.0988400575538036j)",
+        "best_mse": 1.770951493763455e-32,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "x0 * (0.9851037084132391 - 0.09884005755380355j)",
+        "best_mse": 1.7711746535293294e-32,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    },
+    "wm_larmor": {
+      "A_emlstar": {
+        "best_equation": "x0 * (0.9950041652780256 - 0.09983341664682903j)",
+        "best_mse": 6.347138760308282e-31,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "(0.9950041652780257 - 0.09983341664682903j) * x0",
+        "best_mse": 6.3708549826317915e-31,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    },
+    "wm_rabi": {
+      "A_emlstar": {
+        "best_equation": "x0 * (0.9971888181122074 - 0.07492970727274303j)",
+        "best_mse": 3.3890511824295526e-30,
+        "anti_holomorphic": false,
+        "marker": "emlstar"
+      },
+      "B_re": {
+        "best_equation": "x0 * (0.9971888181122074 - 0.07492970727274303j)",
+        "best_mse": 3.3890511824295526e-30,
+        "anti_holomorphic": false,
+        "marker": "my_real"
+      }
+    }
+  },
+  "routes_agree": true,
+  "datasets_complete": [
+    "mandelbrot",
+    "tricorn",
+    "wm_damped",
+    "wm_larmor",
+    "wm_rabi"
+  ]
+}
