@@ -1,0 +1,233 @@
+{
+  "timestamp": "2026-05-21T16:24:27.623922+00:00",
+  "note": "significance = log10(MSE_holo_pure / MSE_anti) per route.",
+  "threshold_decades": 6.0,
+  "niterations": 60,
+  "runs": {
+    "anti_conj_linear": {
+      "HOLO_PURE": {
+        "best_equation": "((log(sin(sin(log(x0)))) + log(x0)) / (-6.3072348934279665 - 0.11495841628661456j)) + (-0.4135370290108502 + 0.2666222679121551j)",
+        "best_mse": 0.1880895564918012,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "log(emlstar(x0, 1.0 - 0.0j)) + (-0.7 + 0.27015j)",
+        "best_mse": 2.0918706262713475e-32,
+        "marker": "emlstar",
+        "marker_present": true
+      },
+      "B_re": {
+        "best_equation": "(my_real(x0 + x0) - x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.0670351546142896e-32,
+        "marker": "my_real",
+        "marker_present": true
+      },
+      "significance": {
+        "sig_A": 30.953829860727907,
+        "sig_B": 31.24618595444202,
+        "significant_anti": true
+      }
+    },
+    "anti_mod_squared": {
+      "HOLO_PURE": {
+        "best_equation": "(log(log(cos(x0 * x0)) * (-0.06788242511589573 - 0.01004493867020931j)) * (0.08569784859387373 - 0.001063705295919251j)) + cos(x0 * (x0 * (-0.7320584400820528 - 0.04812896593711219j)))",
+        "best_mse": 0.0509112721458711,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "((1.0 + 4.803583506633742e-25j) - emlstar(-2.6656271988775893e-24 - 1.1944803768528735e-27j, exp(x0))) * x0",
+        "best_mse": 1.4548578208099965e-32,
+        "marker": "emlstar",
+        "marker_present": true
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0)))",
+        "best_mse": 1.0278771391749024e-32,
+        "marker": "my_real",
+        "marker_present": true
+      },
+      "significance": {
+        "sig_A": 30.54399339610083,
+        "sig_B": 30.694872742006535,
+        "significant_anti": true
+      }
+    },
+    "anti_mixed_deg3": {
+      "HOLO_PURE": {
+        "best_equation": "(x0 * (0.2171450726714833 + 0.02228711427217369j)) * (log((-1.0235921589124737 + 0.4084479871109451j) - (x0 * x0)) - log((x0 * x0) + (-0.7238486097194677 + 0.6330611897995796j)))",
+        "best_mse": 0.1857801467552298,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "x0 * log(emlstar(x0 * x0, 1.0 + 0.0j))",
+        "best_mse": 2.7196000276882276e-32,
+        "marker": "emlstar",
+        "marker_present": true
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(log(x0 * x0))) * (my_real(x0 + x0) - x0)",
+        "best_mse": 2.677986333072985e-32,
+        "marker": "my_real",
+        "marker_present": true
+      },
+      "significance": {
+        "sig_A": 30.83449426468591,
+        "sig_B": 30.841190945321195,
+        "significant_anti": true
+      }
+    },
+    "holo_control": {
+      "HOLO_PURE": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.7425092853482042e-32,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.8102053702451103e-32,
+        "marker": "emlstar",
+        "marker_present": false
+      },
+      "B_re": {
+        "best_equation": "(x0 * x0) + (-0.7 + 0.27015j)",
+        "best_mse": 1.8102053702451103e-32,
+        "marker": "my_real",
+        "marker_present": false
+      },
+      "significance": {
+        "sig_A": -0.016552747949178905,
+        "sig_B": -0.016552747949178905,
+        "significant_anti": false
+      }
+    },
+    "anti_conj_cube": {
+      "HOLO_PURE": {
+        "best_equation": "(log(cos(x0 * (-4.557245037969845 - 0.1706418526124131j))) / (-5.379295654653252 + 0.22449566020682502j)) * x0",
+        "best_mse": 0.3837636218534514,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "log(emlstar((x0 * x0) * x0, 0.9999999999789358 + 3.2866035423898557e-12j))",
+        "best_mse": 1.1852658739974638e-21,
+        "marker": "emlstar",
+        "marker_present": true
+      },
+      "B_re": {
+        "best_equation": "my_real((x0 * x0) * (x0 + x0)) - (x0 * (x0 * x0))",
+        "best_mse": 1.9208524250595203e-32,
+        "marker": "my_real",
+        "marker_present": true
+      },
+      "significance": {
+        "sig_A": 20.51024802378912,
+        "sig_B": 31.300569803989827,
+        "significant_anti": true
+      }
+    },
+    "anti_exp_conj": {
+      "HOLO_PURE": {
+        "best_equation": "exp((log(log((x0 / (0.7068160714066297 - 0.4117509728802611j)) * x0)) * x0) * (-0.42982999185192666 - 0.25094904864338297j))",
+        "best_mse": 0.286525564007023,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "emlstar(x0, 1.0 - 6.2891446163050155e-18j)",
+        "best_mse": 1.7144232047014795e-32,
+        "marker": "emlstar",
+        "marker_present": true
+      },
+      "B_re": {
+        "best_equation": "exp(my_real(x0 + x0) - x0)",
+        "best_mse": 1.7148852915307876e-32,
+        "marker": "my_real",
+        "marker_present": true
+      },
+      "significance": {
+        "sig_A": 31.223045339837977,
+        "sig_B": 31.222928300638056,
+        "significant_anti": true
+      }
+    },
+    "anti_re_z2": {
+      "HOLO_PURE": {
+        "best_equation": "(((0.15690195184273262 - 0.0023689147130236564j) / ((x0 * (x0 * x0)) + ((0.1607618307531846 - 0.07839476535438532j) / x0))) - (x0 * (-0.30179720054323933 + 0.028227884409820655j))) * x0",
+        "best_mse": 0.0670961777239713,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "(x0 / sin(sin(x0 * exp(emlstar(-0.6364830216254274 + 0.038698020455068254j, x0))))) / exp(emlstar(-1.895538354219892 + 0.01715587556669918j, x0))",
+        "best_mse": 0.0057494774492765,
+        "marker": "emlstar",
+        "marker_present": true
+      },
+      "B_re": {
+        "best_equation": "my_real(x0 * x0)",
+        "best_mse": 7.291888388023667e-33,
+        "marker": "my_real",
+        "marker_present": true
+      },
+      "significance": {
+        "sig_A": 1.0670694054534005,
+        "sig_B": 30.96385776778412,
+        "significant_anti": true
+      }
+    },
+    "holo_exp": {
+      "HOLO_PURE": {
+        "best_equation": "exp(x0)",
+        "best_mse": 2.410157256812989e-32,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "exp(x0)",
+        "best_mse": 2.410157256812989e-32,
+        "marker": "emlstar",
+        "marker_present": false
+      },
+      "B_re": {
+        "best_equation": "exp(x0)",
+        "best_mse": 2.410157256812989e-32,
+        "marker": "my_real",
+        "marker_present": false
+      },
+      "significance": {
+        "sig_A": 0.0,
+        "sig_B": 0.0,
+        "significant_anti": false
+      }
+    },
+    "holo_trap_inv": {
+      "HOLO_PURE": {
+        "best_equation": "(1.0 + 9.473501356074328e-36j) / (x0 - ((((0.7538743989924894 + 0.19403650143480297j) / x0) + (log(x0 - (1.3799167442346616 + 0.06361661990532454j)) + log(log(x0)))) * (-9.681391577601603e-18 + 9.785268243866678e-19j)))",
+        "best_mse": 1.1617510351097618e-31,
+        "marker": null,
+        "marker_present": false
+      },
+      "A_emlstar": {
+        "best_equation": "(0.9999999999999999 + 5.208393213960962e-18j) / (((1.4409573955674776e-17 - 8.828042698394004e-18j) / sin((0.8414709848078964 - 2.2021212357751246e-18j) / x0)) + x0)",
+        "best_mse": 1.9361843176348827e-31,
+        "marker": "emlstar",
+        "marker_present": false
+      },
+      "B_re": {
+        "best_equation": "(1.9999999999999996 + 9.207736085415477e-34j) / ((x0 + x0) + ((log(x0) * (-4.433700198862923e-18 + 2.8332217598191838e-18j)) / x0))",
+        "best_mse": 2.157735624810068e-31,
+        "marker": "my_real",
+        "marker_present": false
+      },
+      "significance": {
+        "sig_A": -0.22183363007618184,
+        "sig_B": -0.26888516384676336,
+        "significant_anti": false
+      }
+    }
+  }
+}
