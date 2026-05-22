@@ -1,0 +1,22 @@
+{
+  "dataset": "data/eht_m87_visibility.csv",
+  "niter": 60,
+  "runs": {
+    "eht_m87_visibility": {
+      "A_emlstar": {
+        "best_equation": "sin(emlstar(-3.81332214435556 + 0.29110567242320096j, x0 / (x0 + (0.0017880622940735476 + 0.00047034174173626604j))) * (0.5010610435218054 + 0.03359803256409603j))",
+        "mse": 0.0648663974392112,
+        "verdict": "anti",
+        "marker": "emlstar",
+        "anti_holomorphic": true
+      },
+      "B_re": {
+        "best_equation": "my_real(eml(1.369065724212784 - 1.0635249956897939j, eml(1.9470312084263364 + 3.1226783170493713j, x0)))",
+        "mse": 0.0830807791349716,
+        "verdict": "anti",
+        "marker": "my_real",
+        "anti_holomorphic": true
+      }
+    }
+  }
+}
