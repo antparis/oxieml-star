@@ -45,8 +45,9 @@ and anti-holomorphic — including:
 - `Re(z)`, `Im(z)`, `|z|²`, `|z|`
 - Conformal primary wavefunctions for 2D CFT
 
-This is the **first symbolic regression engine** that natively covers both
-holomorphic and anti-holomorphic function spaces in a unified algebraic framework.
+To our knowledge, no prior symbolic regression framework covers
+anti-holomorphic function spaces via a dedicated operator; eml★
+is introduced for this purpose.
 
 ### Canonical constructions
 

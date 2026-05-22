@@ -27,7 +27,7 @@ Independent researcher, France\\
 \maketitle
 
 \begin{abstract}
-We introduce $\emlstar(x,y) = \exp(\conj{x}) - \ln(\conj{y})$,
+We introduce $\emlstar(x,y) = \exp(x) - \ln(\conj{y})$,
 the anti-holomorphic extension of the EML operator
 $\eml(x,y) = \exp(x) - \ln(y)$ of Odrzywołek (2026).
 We prove that $\conj{z} = 1 - \emlstar(0, \eml(z,1))$
@@ -45,8 +45,8 @@ $\emlstar$-present) at machine precision ($\mathrm{MSE} \sim 10^{-32}$);
 (ii) quantum state evolution, where $\emlstar$ correctly identifies
 dissipative systems (7/7 classification);
 (iii) gravitational lensing ellipticities from KiDS-1000,
-confirming $\emlstar$ detection on 5\,000 real astrophysical
-measurements.
+where $\emlstar$ recovers the modulus structure $|\gamma|^2$ on
+5\,000 real complex measurements as a sanity check on observational data.
 Negative controls on 175 SPARC galaxy rotation curves,
 tested with two independent methods (DEAP and PySR),
 show that $\emlstar$ produces no signal on purely real data,
@@ -96,7 +96,7 @@ Following~\citet{odrzywołek2026eml}, the EML operator is:
 \begin{definition}[$\emlstar$ operator]
 The anti-holomorphic extension of EML is:
 \begin{equation}
-\emlstar(x,y) = \exp(\conj{x}) - \ln(\conj{y}), \quad y \neq 0.
+\emlstar(x,y) = \exp(x) - \ln(\conj{y}), \quad y \neq 0.
 \label{eq:emlstar}
 \end{equation}
 \end{definition}
@@ -121,7 +121,7 @@ For all $z \in \mathbb{C}$ with $|\mathrm{Im}(z)| < \pi$:
 We compute stepwise:
 \begin{align}
 \eml(z, 1) &= \exp(z) - \ln(1) = \exp(z), \\
-\emlstar(0, \exp(z)) &= \exp(\conj{0}) - \ln(\conj{\exp(z)}) \\
+\emlstar(0, \exp(z)) &= \exp(0) - \ln(\conj{\exp(z)}) \\
   &= 1 - \ln(\exp(\conj{z})) \\
   &= 1 - \conj{z},
 \end{align}
@@ -283,8 +283,7 @@ We test whether PySR recovers $|\gamma|^2 = \gamma \cdot \conj{\gamma}$:
 \mathrm{MSE} = 2.54 \times 10^{-34}, \quad \emlstar = \textbf{Yes}.
 \end{equation}
 
-This confirms that $\emlstar$ operates correctly on real
-astrophysical measurements with native complex structure.
+PySR recovers the expected modulus structure on natively complex data.
 While the test is a sanity check ($|\gamma|^2$ is known to
 require conjugation), it is the first application of $\emlstar$
 to observational data.
@@ -390,10 +389,10 @@ understood since Kruskal (1960).
 We have shown that the $\emlstar$ operator, combined with symbolic
 regression, provides an automatic, interpretable criterion for
 detecting anti-holomorphic structure in complex dynamical systems.
-The method is validated on fractal maps (machine precision),
-quantum evolution (7/7 classification), and real astrophysical
-data (KiDS-1000), with rigorous negative controls confirming
-specificity.
+The method is validated on fractal maps (machine precision)
+and quantum evolution (7/7 classification), with a sanity check
+on real complex astrophysical data (KiDS-1000) and rigorous
+negative controls confirming specificity.
 
 The $\emlstar$ framework opens several directions:
 (i) application to natively complex astrophysical data
