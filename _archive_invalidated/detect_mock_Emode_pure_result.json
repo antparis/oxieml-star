@@ -7,13 +7,15 @@
         "best_equation": "my_conj(x0 * (0.13750022127658976 - 0.010704580813951176j))",
         "mse": 0.1580241647110257,
         "verdict": "holo",
-        "marker": "emlstar"
+        "marker": "emlstar",
+        "anti_holomorphic": false
       },
       "B_re": {
         "best_equation": "(0.05996195658328429 - 0.001213978165101904j) / (x0 + (0.38633552991070946 + 0.29420419120759866j))",
         "mse": 0.157467667047436,
         "verdict": "holo",
-        "marker": "my_real"
+        "marker": "my_real",
+        "anti_holomorphic": false
       }
     }
   }
