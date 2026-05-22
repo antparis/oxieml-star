@@ -69,6 +69,12 @@ DATASETS = {
     "anti_re_z2":       "anti_re_z2.csv",        # Re(z^2)          (anti, real output)
     "holo_exp":         "holo_exp.csv",          # exp(z)           (holo, transcendental)
     "holo_trap_inv":    "holo_trap_inv.csv",     # 1/z              (holo trap)
+    "kids_psf":          "kids_psf.csv",          # REAL PSF field (unknown truth)
+    "kids_psf_shuffled": "kids_psf_shuffled.csv", # negative control (expect: no structure)
+    "penning_holo":          "penning_holo.csv",          # e^{i th} z        (holo, sanity)
+    "penning_anti":          "penning_anti.csv",          # e^{i th} conj(z)  (anti, sanity)
+    "penning_hybrid":        "penning_hybrid.csv",        # squeezing         (hybrid, sanity)
+    "penning_holo_shuffled": "penning_holo_shuffled.csv", # negative control  (no clean holo)
 }
 
 # Expected verdict per dataset, certified by the SymPy judge (verify_exact.py)
@@ -83,6 +89,9 @@ EXPECTED = {
     "anti_re_z2":       "anti",
     "holo_exp":         "holo",
     "holo_trap_inv":    "holo",
+    "penning_holo":     "holo",
+    "penning_anti":     "anti",
+    "penning_hybrid":   "anti",   # marker-level expectation; judge decides hybrid
 }
 
 # Operator definitions copied verbatim from pysr_stacking.py (paper v8).
