@@ -1,0 +1,22 @@
+{
+  "dataset": "data/psf_noB_map.csv",
+  "niter": 60,
+  "runs": {
+    "psf_noB_map": {
+      "A_emlstar": {
+        "best_equation": "x0 * (0.08036238294848849 + 0.02941787245600341j)",
+        "mse": 7.240839581983051e-05,
+        "verdict": "holo",
+        "marker": "emlstar",
+        "anti_holomorphic": false
+      },
+      "B_re": {
+        "best_equation": "x0 * (0.08036238294812599 + 0.029417872455961416j)",
+        "mse": 7.240839581983054e-05,
+        "verdict": "holo",
+        "marker": "my_real",
+        "anti_holomorphic": false
+      }
+    }
+  }
+}

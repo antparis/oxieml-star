@@ -41,7 +41,11 @@ def main():
     ap.add_argument("--grid", type=int, default=6, help="NxN pixel grid")
     ap.add_argument("--min-per-pixel", type=int, default=20)
     ap.add_argument("--no-psf", action="store_true",
-                    help="skip PSF-leakage regression")
+                    help="skip PSF-leakage subtraction")
+    ap.add_argument("--alpha", nargs=2, type=float, default=[0.0, 0.0],
+                    metavar=("RE", "IM"),
+                    help="PUBLISHED complex PSF-leakage alpha (re im); "
+                         "never regressed on the data")
     ap.add_argument("--cterm-cols", nargs=2, default=["c_e1", "c_e2"],
                     help="known c-term column names (real, imag)")
     args = ap.parse_args()
@@ -70,13 +74,22 @@ def main():
         log(f"  WARNING: c-term columns ({cc1},{cc2}) absent; SKIPPING c-term "
             f"(do NOT re-estimate from data)")
 
-    # 3. PSF-leakage regression (weighted complex alpha)
+    # 3. PSF-leakage subtraction using a PUBLISHED alpha (NEVER regressed on
+    #    the data). Regressing alpha on the science data is degenerate: the PSF
+    #    field can be partly collinear with the lensing signal, so the fit
+    #    aspirates the E-mode and biases everything (validated by failure).
+    #    KiDS measures alpha independently on star fields (Giblin 2021); pass it
+    #    via --alpha re im. Default 0 0 = skip (equivalent to --no-psf).
     if not args.no_psf:
-        num = np.sum(w * np.conj(psf) * e)
-        den = np.sum(w * np.abs(psf) ** 2)
-        alpha = num / den
-        e = e - alpha * psf
-        log(f"  PSF leakage regressed: alpha = {alpha:.4f} (subtracted)")
+        ar, ai = args.alpha
+        alpha = ar + 1j * ai
+        if alpha == 0:
+            log("  PSF step: alpha=0 given, nothing subtracted "
+                "(use --alpha re im with the PUBLISHED value)")
+        else:
+            e = e - alpha * psf
+            log(f"  PSF leakage subtracted with PUBLISHED alpha = {alpha:.4f} "
+                f"(NOT regressed on data)")
     else:
         log("  PSF step skipped (--no-psf)")
 

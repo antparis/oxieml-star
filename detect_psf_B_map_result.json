@@ -1,0 +1,22 @@
+{
+  "dataset": "data/psf_B_map.csv",
+  "niter": 60,
+  "runs": {
+    "psf_B_map": {
+      "A_emlstar": {
+        "best_equation": "((my_conj(x0) * (0.2130790689491756 - 0.08158552362719516j)) + x0) * (0.08036235815741731 + 0.029417845781717994j)",
+        "mse": 7.220381108457826e-05,
+        "verdict": "holo",
+        "marker": "emlstar",
+        "anti_holomorphic": false
+      },
+      "B_re": {
+        "best_equation": "my_real(x0 * (0.03904721361886291 + 0.0005761557598436374j)) - (x0 * (-0.060838751365087915 - 0.029129767895272333j))",
+        "mse": 7.220381108457826e-05,
+        "verdict": "anti",
+        "marker": "my_real",
+        "anti_holomorphic": true
+      }
+    }
+  }
+}
