@@ -1,0 +1,22 @@
+{
+  "dataset": "data/map_Epure_map.csv",
+  "niter": 60,
+  "runs": {
+    "map_Epure_map": {
+      "A_emlstar": {
+        "best_equation": "x0 * (0.08036238311790145 + 0.029417872784492028j)",
+        "mse": 7.240839603920565e-05,
+        "verdict": "holo",
+        "marker": "emlstar",
+        "anti_holomorphic": false
+      },
+      "B_re": {
+        "best_equation": "x0 * (0.08036238311790665 + 0.029417872784488704j)",
+        "mse": 7.240839603920565e-05,
+        "verdict": "holo",
+        "marker": "my_real",
+        "anti_holomorphic": false
+      }
+    }
+  }
+}

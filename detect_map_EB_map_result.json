@@ -1,0 +1,22 @@
+{
+  "dataset": "data/map_EB_map.csv",
+  "niter": 60,
+  "runs": {
+    "map_EB_map": {
+      "A_emlstar": {
+        "best_equation": "(my_conj(x0) * (0.01952360696875336 - 0.00028807901735912516j)) + (x0 * (0.08036235696266286 + 0.02941784599812512j))",
+        "mse": 7.220383207254872e-05,
+        "verdict": "holo",
+        "marker": "emlstar",
+        "anti_holomorphic": false
+      },
+      "B_re": {
+        "best_equation": "my_real(x0 * (0.03904721393192062 + 0.0005761580067218062j)) + (x0 * (0.0608387499943233 + 0.029129766999293545j))",
+        "mse": 7.220383207254872e-05,
+        "verdict": "anti",
+        "marker": "my_real",
+        "anti_holomorphic": true
+      }
+    }
+  }
+}
