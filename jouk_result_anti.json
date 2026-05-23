@@ -1,0 +1,8 @@
+{
+  "dataset": "anti",
+  "best_equation": "((1.0 - 3.7908538586659805e-19j) / my_conj(x0)) + x0",
+  "mse": 3.9707680072471547e-32,
+  "judge_verdict": "anti-holomorphic",
+  "judge_dfdzbar": "(-1.0 + 3.7908538586659805e-19*I)/zbar**2",
+  "expected_verdict": "anti-holomorphic"
+}

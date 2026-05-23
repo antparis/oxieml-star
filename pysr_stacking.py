@@ -152,7 +152,7 @@ def build_operators(bricks):
     binary_operators = [
         "+", "-", "*", "/",
         "eml(x, y) = exp(x) - log(y + (1e-30 + 0im))",
-        "emlstar(x, y) = exp(conj(x)) - log(conj(y) + (1e-30 + 0im))",
+        "emlstar(x, y) = exp(x) - log(conj(y) + (1e-30 + 0im))",
     ]
 
     # Base unary operators (always present)
@@ -167,7 +167,7 @@ def build_operators(bricks):
     # Base sympy mappings
     extra_sympy = {
         "eml": lambda x, y: sympy.exp(x) - sympy.log(y),
-        "emlstar": lambda x, y: sympy.exp(sympy.conjugate(x)) - sympy.log(sympy.conjugate(y)),
+        "emlstar": lambda x, y: sympy.exp(x) - sympy.log(sympy.conjugate(y)),
         "my_conj": lambda z: sympy.conjugate(z),
         "my_real": lambda z: sympy.re(z),
         "my_imag": lambda z: sympy.im(z),

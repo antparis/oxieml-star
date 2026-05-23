@@ -78,7 +78,7 @@ def op_eml(x, y):
 
 
 def op_emlstar(x, y):
-    return sp.exp(op_conj(x)) - sp.log(op_conj(y))
+    return sp.exp(x) - sp.log(op_conj(y))
 
 
 LOCALS = {

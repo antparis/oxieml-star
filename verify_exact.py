@@ -72,8 +72,8 @@ def op_eml(x, y):
 
 
 def op_emlstar(x, y):
-    """emlstar(x, y) = exp(conj(x)) - log(conj(y)). Anti-holomorphic."""
-    return sp.exp(op_conj(x)) - sp.log(op_conj(y))
+    """emlstar(x, y) = exp(x) - log(conj(y)). Canonical MIXTE (conj on 2nd arg only)."""
+    return sp.exp(x) - sp.log(op_conj(y))
 
 
 def op_my_conj(expr):

@@ -1,0 +1,8 @@
+{
+  "dataset": "shuffle",
+  "best_equation": "(-0.06604137770982903 + 0.04411824008786647j) / eml(x0, 7.374936311237756 + 4.324081999926135j)",
+  "mse": 0.6102584145150367,
+  "judge_verdict": "holomorphic",
+  "judge_dfdzbar": "0",
+  "expected_verdict": "anti-holomorphic"
+}

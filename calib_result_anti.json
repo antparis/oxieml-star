@@ -1,0 +1,8 @@
+{
+  "dataset": "anti",
+  "best_equation": "my_conj(x0 * x0)",
+  "mse": 1.0889671944393532e-32,
+  "judge_verdict": "anti-holomorphic",
+  "judge_dfdzbar": "2*zbar",
+  "expected_verdict": "anti-holomorphic"
+}

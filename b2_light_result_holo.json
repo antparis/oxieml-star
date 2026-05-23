@@ -1,0 +1,8 @@
+{
+  "dataset": "holo",
+  "best_equation": "exp(eml(exp(x0 - (0.22260005694858048 + 0.0056792029351482795j)), 0.14592469855528983 + 0.004719703575766214j) * ((0.1202503013447707 + 0.0011057372824442246j) * sin(x0))) * x0",
+  "mse": 5.436560712928567e-06,
+  "judge_verdict": "holomorphic",
+  "judge_dfdzbar": "0",
+  "expected_verdict": "holomorphic"
+}

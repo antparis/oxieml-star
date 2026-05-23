@@ -1,0 +1,8 @@
+{
+  "dataset": "holo",
+  "best_equation": "x0 * x0",
+  "mse": 1.0889671944393532e-32,
+  "judge_verdict": "holomorphic",
+  "judge_dfdzbar": "0",
+  "expected_verdict": "holomorphic"
+}

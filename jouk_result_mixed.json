@@ -1,0 +1,8 @@
+{
+  "dataset": "mixed",
+  "best_equation": "my_real(exp(x0) * (2.0 + 6.062453031515443e-17j))",
+  "mse": 1.445513156766905e-31,
+  "judge_verdict": "anti-holomorphic",
+  "judge_dfdzbar": "(1.0 + 3.031226515757721e-17*I)*exp(zbar)",
+  "expected_verdict": "anti-holomorphic"
+}
