@@ -179,7 +179,7 @@ def try_prove_equal(expr, candidate):
     except Exception:
         pass
     # Numeric fallback on the physical domain zbar = conj(z).
-    return _numeric_equal_on_domain(expr, candidate)
+    return False, None  # numeric fallback DISABLED (sampling is not a proof)
 
 
 def _numeric_equal_on_domain(expr, candidate, n=40, tol=1e-9):
