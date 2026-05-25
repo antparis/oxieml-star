@@ -1,0 +1,48 @@
+{
+  "status": "complete",
+  "target": "holo",
+  "best_equation": "x0 * x0",
+  "best_mse": 9.448332323658132e-32,
+  "complexity": 3,
+  "timestamp": "2026-05-23T23:48:20.980667+00:00",
+  "n_samples": 2000,
+  "toolbox": {
+    "binary": [
+      "+",
+      "-",
+      "*",
+      "/"
+    ],
+    "unary": [
+      "sin",
+      "cos",
+      "exp",
+      "log"
+    ],
+    "forbidden": [
+      "my_real",
+      "my_imag",
+      "my_conj",
+      "eml",
+      "emlstar"
+    ]
+  },
+  "full_pareto_front": [
+    {
+      "complexity": 1,
+      "loss": 58.070971979539394,
+      "equation": "0.012292679852665467 - 0.03291638081152182j"
+    },
+    {
+      "complexity": 2,
+      "loss": 53.59491928151508,
+      "equation": "exp(x0)"
+    },
+    {
+      "complexity": 3,
+      "loss": 9.448332323658132e-32,
+      "equation": "x0 * x0"
+    }
+  ],
+  "notes": "Strictly holomorphic toolbox. Judge verify_exact.py is the arbiter; MSE indicative."
+}
