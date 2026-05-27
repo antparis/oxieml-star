@@ -1,0 +1,11 @@
+{
+  "script": "spacetime_trap.py",
+  "symbolic": {
+    "holo_native_dzbar": "0",
+    "anti_native_dzbar": "2*zbar",
+    "trap_massless_dzbar": "(1 - I)*sin(t - x)/2",
+    "trap_massless_dv": "0",
+    "massive_dzbar": "(-k + I*sqrt(k**2 + m**2))*sin(k*x - t*sqrt(k**2 + m**2))/2",
+    "massive_dv": "(-k + sqrt(k**2 + m**2))*sin(k*x - t*sqrt(k**2 + m**2))/2"
+  }
+}

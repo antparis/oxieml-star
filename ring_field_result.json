@@ -1,0 +1,13 @@
+{
+  "script": "ring_field.py",
+  "R": 1.0,
+  "s2": 0.16,
+  "symbolic": {
+    "field": "E(z) = z + exp(-(|z|^2-1)^2/0.16)*conj(z)",
+    "dE_dzbar_radial": "(-25*u*(u - 1) + 2)*exp(-25*(u - 1)**2/4)/2",
+    "dE_dz": "(zbar**2*(-25*z*zbar + 25)/2 + exp(25*(z*zbar - 1)**2/4))*exp(-25*(z*zbar - 1)**2/4)",
+    "on_ring_max_abs_dzbar": 2.3332030868697538,
+    "far_max_abs_dzbar": 0.011439616984231722,
+    "ring_over_far_ratio": 203.95814738254109
+  }
+}
