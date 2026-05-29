@@ -1,0 +1,19 @@
+{
+  "label": "kirsch",
+  "csv": "kirsch_closed_form.csv",
+  "best_equation": "((1.3500000000000003 - 7.106990187569016e-17j) / x0) + ((x0 * (0.3500000000000001 - 5.22077693175743e-18j)) + (my_conj((((((x0 / x0) / x0) / x0) + ((my_conj(x0) - x0) / x0)) / x0) + x0) * (0.65 + 8.675441481155777e-18j)))",
+  "best_mse": 3.0257591705233984e-31,
+  "mse_below_1e-3": true,
+  "complexity": 29,
+  "elapsed_s": 9495.677671670914,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 120,
+    "population_size": 500,
+    "maxsize": 40,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

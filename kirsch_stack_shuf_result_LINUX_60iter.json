@@ -1,0 +1,19 @@
+{
+  "label": "shuf",
+  "csv": "kirsch_shuffled.csv",
+  "best_equation": "my_real((-0.48132920568805293 - 0.43729782920869237j) / (x0 - (-0.6310949879122884 + 1.2047347003270048j)))",
+  "best_mse": 8.700478399655543,
+  "mse_below_1e-3": false,
+  "complexity": 6,
+  "elapsed_s": 3549.5017173290253,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 60,
+    "population_size": 300,
+    "maxsize": 30,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

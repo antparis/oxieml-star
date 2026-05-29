@@ -1,0 +1,19 @@
+{
+  "label": "holo",
+  "csv": "kirsch_holo_control.csv",
+  "best_equation": "x0",
+  "best_mse": 0.0,
+  "mse_below_1e-3": true,
+  "complexity": 1,
+  "elapsed_s": 1671.6277718544006,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 60,
+    "population_size": 300,
+    "maxsize": 30,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "label": "kirsch",
+  "csv": "kirsch_closed_form.csv",
+  "best_equation": "((1.3529148661767323 + 0.0005000337622868816j) / x0) + (x0 + ((((x0 * (my_real(sin((-2.512796893060935 - 1.8657056271400678j) / my_abs2(x0)) / (-2.278978515282088 + 0.8393161956259667j)) * x0)) + (-0.6505995535932779 + 0.0007077892276750326j)) / my_conj(x0)) + (my_imag(x0) * (3.755727359403232e-5 - 1.2997368490272572j))))",
+  "best_mse": 5.524942566083828e-05,
+  "mse_below_1e-3": true,
+  "complexity": 28,
+  "elapsed_s": 1862.6676564216614,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 60,
+    "population_size": 300,
+    "maxsize": 30,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

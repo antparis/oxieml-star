@@ -1,0 +1,19 @@
+{
+  "label": "kirsch",
+  "csv": "kirsch_closed_form.csv",
+  "best_equation": "((my_conj(sin((1.315623987853463 + 0.008736378280005511j) / x0) - x0) * (-0.6504035352552116 + 0.0001731760667264948j)) + (my_conj(inv((x0 / my_abs2(((-0.5538295875223379 + 0.003991161202128718j) / x0) - x0)) / (1.361730162450549 + 0.0001924200584911786j))) - x0)) + sin(sin((0.5898539813209854 + 0.008947246221960966j) / x0))",
+  "best_mse": 0.001532854794647,
+  "mse_below_1e-3": false,
+  "complexity": 30,
+  "elapsed_s": 1870.3233766555786,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 60,
+    "population_size": 300,
+    "maxsize": 30,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}
