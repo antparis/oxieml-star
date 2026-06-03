@@ -71,3 +71,24 @@ identified the true seat of 2D chirality: the angular winding number m. The
 superseded algebraic conjecture AND the sign(lambda) justification are both
 retired. The screened transcendental form stands, but its chirality must come
 from opposite m, whose physical origin is the next thing to derive.
+
+## CATEGORY-ERROR CAUGHT in sandbox (2026-06-03) -- test B was mis-posed
+Attempted to build a discriminant test (field with same vs opposite winding m)
+on the complex VELOCITY w = v_x - i v_y. SymPy showed EVERYTHING comes out
+"chiral", including the m=0 round mode -- contradicting yesterday's "m=0 mirror".
+ROOT CAUSE: category error. The project's "mirror-locked / real-trapped" criterion
+(f == conj(f)) applies to a complex SCALAR observable, NOT to a velocity field.
+A velocity w is complex by construction and is never "real-trapped" in that sense.
+Testing w with the scalar reality criterion is meaningless.
+
+CORRECT framing of the discriminant: chirality is tested on a SCALAR field
+f = a*g(z) + b*gbar(zbar): mirror <=> b = conj(a); chiral <=> b != conj(a).
+The Hall question must therefore be reposed:
+  "does Hall-MHD provide a complex SCALAR observable whose holo/anti weights are
+   independent (b != conj a)?" -- NOT "does the mode have opposite winding m".
+The sign(lambda) (vrille) the Hall term forces lives in the vector velocity, not
+automatically in a scalar observable with independent weights.
+
+CONSEQUENCE: the originally-planned test B (field a vs field b on velocity) is
+RETIRED as mis-posed. A correct test must build a SCALAR Hall observable and
+check b vs conj(a). To be reconstructed cold, not improvised.
