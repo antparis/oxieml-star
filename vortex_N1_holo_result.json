@@ -1,0 +1,19 @@
+{
+  "label": "vortex_N1_holo",
+  "csv": "vortex_N1_holo_control.csv",
+  "best_equation": "log(((x0 - x0) + (0.2666856422005498 + 0.04535496279022926j)) + ((((x0 - x0) / (1.5310686634808497 + 0.0j)) + (-1.3625098364258614 + 0.1991312782038652j)) + x0)) * (0.7171958398226516 + 0.3947360581192566j)",
+  "best_mse": 2.615625365606731e-24,
+  "mse_below_1e-3": true,
+  "complexity": 18,
+  "elapsed_s": 2455.1634521484375,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

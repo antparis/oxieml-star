@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 """
-kirsch_stack.py -- Harness "B" for Kirsch: PySR with inv(z)=1/z and
-inv_bar(z)=1/conj(z) given as PRIMITIVES on top of the standard MIXTE toolbox.
+kirsch_run.py -- PySR detector harness for the Kirsch closed-form datasets.
 
-Why this is not cheating
-  The real difficulty of the Kirsch displacement is NOT to discover 1/z (banal).
-  It is to find the right COMBINATION of z, conj(z), 1/z, 1/conj(z) and the more
-  exotic z/conj(z)^3 with the right coefficients. Adding 1/z and 1/conj(z) as
-  primitives removes the trivial step and lets PySR concentrate its budget on
-  the combinatorial structure -- which is the only thing worth testing here.
+Why a separate harness:
+  pysr_stacking.py is a stacking engine with a hard-coded LAYER_DATASETS map
+  and is stable since 2026-05-23. Modifying it would risk side effects on
+  the existing brick discoveries. This harness keeps pysr_stacking.py untouched
+  and just runs the same toolbox (MIXTE) and the same ingestion convention on
+  the three Kirsch CSVs.
 
-Toolbox (extends MIXTE by two unary ops):
-  binary  : +, -, *, /, eml, emlstar
-  unary   : sin, cos, exp, log, my_conj, my_real, my_imag, my_abs2,
-            inv(z) = 1/z, inv_bar(z) = 1/conj(z)
-  (emlstar = exp(x) - log(conj(y)) -- MIXTE, conj on 2nd arg only)
+Ingestion convention (verbatim from pysr_stacking.py lines 200-215):
+    z = (df.iloc[:, 0] + 1j * df.iloc[:, 1]).astype(complex128)
+    target = (df.iloc[:, 2] + 1j * df.iloc[:, 3]).astype(complex128)
+    X = z.reshape(-1, 1)            # ONE complex feature (no SPARC trap)
 
-Ingestion: identical to pysr_stacking.py (z = col0+i*col1 atomic complex,
-X = z.reshape(-1,1), target = col2+i*col3).
+Toolbox (verbatim, MIXTE):
+    binary  : +, -, *, /, eml, emlstar
+    unary   : sin, cos, exp, log, my_conj, my_real, my_imag, my_abs2
+    emlstar(x,y) = exp(x) - log(conj(y))   (conj on the 2nd arg only)
 
-Verdict: the judge verify_exact.py is the only authority. MSE >= 1e-3 invalidates
-any claim regardless of marker. This harness writes one JSON per dataset and
-prints the judge commands; it does NOT certify anything by itself.
+Per-dataset PySR config is conservative; tweakable via flags.
+
+The verdict is NEVER the marker. The official judge (verify_exact.py) must
+certify the best_equation; MSE >= 1e-3 invalidates the claim regardless.
+This harness writes one JSON per dataset and prints the judge commands.
 
 Author: Anthony Monnerot, 2026. English only.
 """
@@ -40,6 +42,9 @@ except ImportError:
     raise SystemExit("ERROR: PySR not installed. pip install pysr")
 
 
+# ---------------------------------------------------------------------------
+# Toolbox -- MIXTE, copied verbatim from pysr_stacking.py (lines 152-174)
+# ---------------------------------------------------------------------------
 def build_toolbox():
     binary_operators = [
         "+", "-", "*", "/",
@@ -52,27 +57,25 @@ def build_toolbox():
         "my_real(z) = complex(real(z))",
         "my_imag(z) = complex(imag(z))",
         "my_abs2(z) = z * conj(z)",
-        # NEW primitives for harness B (Kirsch):
-        "inv(z) = 1 / (z + (1e-30 + 0im))",
-        "inv_bar(z) = 1 / (conj(z) + (1e-30 + 0im))",
     ]
     extra_sympy_mappings = {
         "eml": lambda x, y: sp.exp(x) - sp.log(y),
-        "emlstar": lambda x, y: sp.exp(x) - sp.log(sp.conjugate(y)),
+        "emlstar": lambda x, y: sp.exp(x) - sp.log(sp.conjugate(y)),  # MIXTE
         "my_conj": lambda z: sp.conjugate(z),
         "my_real": lambda z: sp.re(z),
         "my_imag": lambda z: sp.im(z),
         "my_abs2": lambda z: z * sp.conjugate(z),
-        "inv": lambda z: 1 / z,
-        "inv_bar": lambda z: 1 / sp.conjugate(z),
     }
     return binary_operators, unary_operators, extra_sympy_mappings
 
 
+# ---------------------------------------------------------------------------
+# One-dataset run
+# ---------------------------------------------------------------------------
 def run_one(csv_path, label, niter, pop, maxsize, parsimony, out_dir, verbose):
     print()
     print("=" * 74)
-    print(f"PYSR (harness B) -- {label}  (csv={csv_path})")
+    print(f"PYSR -- {label}  (csv={csv_path})")
     print("=" * 74)
     if not os.path.exists(csv_path):
         msg = f"missing CSV: {csv_path}"
@@ -84,14 +87,12 @@ def run_one(csv_path, label, niter, pop, maxsize, parsimony, out_dir, verbose):
     y = (df.iloc[:, 2].values + 1j * df.iloc[:, 3].values).astype(np.complex128)
     X = z.reshape(-1, 1)
     print(f"  rows: {len(z)}   X.shape={X.shape}   complex inputs OK")
-    print(f"  toolbox: MIXTE + inv + inv_bar  (added 1/z and 1/conj(z) as primitives)")
 
     binops, unops, smap = build_toolbox()
     model = PySRRegressor(
         niterations=niter,
         population_size=pop,
         maxsize=maxsize,
-        maxdepth=8,
         parsimony=parsimony,
         binary_operators=binops,
         unary_operators=unops,
@@ -101,21 +102,7 @@ def run_one(csv_path, label, niter, pop, maxsize, parsimony, out_dir, verbose):
         deterministic=False,
         verbosity=1 if verbose else 0,
         progress=False,
-        tempdir=os.path.join(out_dir, f"pysr_output_kirsch_stack_{label}"),
-        nested_constraints={
-            "emlstar": {"emlstar": 1, "eml": 1, "log": 0, "exp": 0},
-            "eml":     {"emlstar": 1, "eml": 1, "log": 0, "exp": 0},
-            "log":     {"log": 0, "exp": 0},
-            "exp":     {"exp": 0, "log": 0},
-            "sin":     {"sin": 0, "cos": 0},
-            "cos":     {"sin": 0, "cos": 0},
-            "inv":     {"inv": 0, "inv_bar": 0},
-            "inv_bar": {"inv": 0, "inv_bar": 0},
-        },
-        constraints={
-            "emlstar": (-1, 6),
-            "eml":     (-1, 6),
-        },
+        tempdir=os.path.join(out_dir, f"pysr_output_kirsch_{label}"),
     )
     t0 = time.time()
     model.fit(X, y)
@@ -134,7 +121,7 @@ def run_one(csv_path, label, niter, pop, maxsize, parsimony, out_dir, verbose):
         "mse_below_1e-3": bool(mse < 1e-3),
         "complexity": int(best["complexity"]) if "complexity" in best else None,
         "elapsed_s": dt,
-        "toolbox": "MIXTE + inv + inv_bar",
+        "toolbox": "MIXTE (verbatim pysr_stacking.py)",
         "pysr_config": dict(niterations=niter, population_size=pop, maxsize=maxsize,
                             parsimony=parsimony, precision=64,
                             parallelism="multithreading", deterministic=False),
@@ -160,21 +147,21 @@ def main():
     if args.only != "all":
         datasets = [(lbl, csv) for (lbl, csv) in datasets if lbl == args.only]
 
-    bundle = {"script": "kirsch_stack.py", "results": {}}
+    bundle = {"script": "kirsch_run.py", "results": {}}
     for label, csv in datasets:
         r = run_one(csv, label, args.niter, args.pop, args.maxsize, args.parsimony,
                     args.out_dir, verbose=not args.quiet)
         bundle["results"][label] = r
-        with open(f"kirsch_stack_{label}_result.json", "w") as fh:
+        with open(f"kirsch_{label}_result.json", "w") as fh:
             json.dump(r, fh, indent=2)
-        print(f"  [written] kirsch_stack_{label}_result.json")
+        print(f"  [written] kirsch_{label}_result.json")
 
-    with open("kirsch_stack_summary.json", "w") as fh:
+    with open("kirsch_run_summary.json", "w") as fh:
         json.dump(bundle, fh, indent=2)
 
     print()
     print("=" * 74)
-    print("SUMMARY (harness B)")
+    print("SUMMARY")
     print("=" * 74)
     for label, _ in datasets:
         r = bundle["results"][label]
@@ -193,6 +180,15 @@ def main():
             continue
         eq = r["best_equation"].replace('"', '\\"')
         print(f'    python3 verify_exact.py --formula "{eq}"   # {label}')
+    print()
+    print("Expected (to verify):")
+    print("  kirsch -> judge dw/dzbar != 0  (anti/mixed)  AND  MSE < 1e-3")
+    print("  holo   -> judge dw/dzbar == 0  (holomorphic) AND  MSE < 1e-3")
+    print("  shuf   -> REJECTED at MSE (>> 1e-3) regardless of marker")
+    print()
+    print("Honest reading: a clean pass = VALIDATION of a 1933-classical")
+    print("Kolosov-Muskhelishvili decomposition recovered blindly by symbolic")
+    print("regression from time-free spatial data. NOT a discovery about nature.")
 
 
 if __name__ == "__main__":

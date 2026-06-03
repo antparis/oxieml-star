@@ -1,0 +1,19 @@
+{
+  "label": "vortex",
+  "csv": "vortex_gas.csv",
+  "best_equation": "(emlstar(0.5030144775150522 - 1.2445792605300607j, x0 + (-1.126504387389464 + 1.4745869998883194j)) / (-0.2643037736555358 - 0.8509883960946936j)) + inv_bar((2.7407271249521608 - 2.156223139716532j) / my_abs2(x0 - (0.7464626571342788 + 0.7854000108254118j)))",
+  "best_mse": 2.939578729753944,
+  "mse_below_1e-3": false,
+  "complexity": 15,
+  "elapsed_s": 7773.2555050849915,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 60,
+    "population_size": 400,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

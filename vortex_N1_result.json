@@ -1,0 +1,19 @@
+{
+  "label": "vortex_N1",
+  "csv": "vortex_N1.csv",
+  "best_equation": "((-4.005914870626777e-9 - 1.0929157491235052e-9j) + ((-0.46705280350909395 - 0.006748352952454542j) * log(x0 + (-1.095824193785398 + 0.24448624192965862j)))) + ((my_imag((1.2685256857039298 + 0.8597509056432892j) * log(x0 + (-1.095824193785398 + 0.24448624192965862j))) * (0.4333852268250006 + 1.5733965578150735j)) + my_imag(4.665223560188683e-9 + 1.8676615455084504e-9j))",
+  "best_mse": 2.6885588545902247e-18,
+  "mse_below_1e-3": true,
+  "complexity": 21,
+  "elapsed_s": 3224.080351114273,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

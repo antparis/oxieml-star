@@ -1,0 +1,28 @@
+{
+  "script": "kirsch_closed_form.py",
+  "params": {
+    "E": 1.0,
+    "nu": 0.3,
+    "a": 1.0,
+    "sigma_inf": 1.0,
+    "mu": 0.3846153846153846,
+    "kappa": 2.076923076923077
+  },
+  "sampling": {
+    "n": 1500,
+    "r_in": 1.05,
+    "r_out": 5.0,
+    "seed": 42
+  },
+  "verification": {
+    "far_field_relative_error": 0.0007743374237604175,
+    "dw_dz_symbolic": "-a**2*kappa*sinf/(4*mu*z**2) + a**2*sinf/(4*mu*zbar**2) + kappa*sinf/(8*mu) - sinf/(8*mu)",
+    "dw_dzbar_symbolic": "sinf*(-3*a**4 - 2*a**2*z*zbar + a**2*zbar**2 + zbar**4)/(4*mu*zbar**4)"
+  },
+  "csv": {
+    "kirsch": "kirsch_closed_form.csv",
+    "holo": "kirsch_holo_control.csv",
+    "shuf": "kirsch_shuffled.csv"
+  },
+  "n_rows": 1500
+}

@@ -1,0 +1,19 @@
+{
+  "label": "optical_shuf",
+  "csv": "optical_shuf.csv",
+  "best_equation": "(-0.11904099691414699 - 0.4319260004061863j) / (x0 - (-0.6482942348944277 + 0.4994233566435739j))",
+  "best_mse": 538.6860764952226,
+  "mse_below_1e-3": false,
+  "complexity": 5,
+  "elapsed_s": 3862.855429649353,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

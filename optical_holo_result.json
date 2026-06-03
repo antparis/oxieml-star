@@ -1,0 +1,19 @@
+{
+  "label": "optical_holo",
+  "csv": "optical_holo.csv",
+  "best_equation": "x0 * (x0 * x0)",
+  "best_mse": 1.7142964402055098e-29,
+  "mse_below_1e-3": true,
+  "complexity": 5,
+  "elapsed_s": 4308.48442697525,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

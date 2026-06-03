@@ -1,0 +1,19 @@
+{
+  "label": "loc6_exp",
+  "csv": "data/loc6_exp_zbar.csv",
+  "best_equation": "exp(my_conj(x0))",
+  "best_mse": 2.2855489506034237e-31,
+  "mse_below_1e-3": true,
+  "complexity": 3,
+  "elapsed_s": 510.18690061569214,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

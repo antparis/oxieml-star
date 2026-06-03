@@ -78,6 +78,12 @@ def op_emlstar(x, y):
 
 def op_my_conj(expr):
     return op_conj(expr)
+def op_inv(expr):
+    """inv(z) = 1/z. Holomorphic."""
+    return 1 / expr
+def op_inv_bar(expr):
+    """inv_bar(z) = 1/conj(z). Anti-holomorphic."""
+    return 1 / op_conj(expr)
 
 
 # Namespace for sympify: maps PySR tokens to our Wirtinger-aware functions.
@@ -89,6 +95,8 @@ LOCALS = {
     "my_imag": op_my_imag,
     "my_abs2": op_my_abs2,
     "my_conj": op_my_conj,
+    "inv": op_inv,
+    "inv_bar": op_inv_bar,
     "eml": op_eml,
     "emlstar": op_emlstar,
     "exp": sp.exp,

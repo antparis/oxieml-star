@@ -1,0 +1,19 @@
+{
+  "label": "loc5_mix",
+  "csv": "data/loc5_mix_zbar2_z3.csv",
+  "best_equation": "(x0 * (x0 * x0)) + my_conj(x0 * x0)",
+  "best_mse": 2.9042760988835385e-30,
+  "mse_below_1e-3": true,
+  "complexity": 10,
+  "elapsed_s": 361.89407205581665,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

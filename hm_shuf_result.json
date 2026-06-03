@@ -1,0 +1,19 @@
+{
+  "label": "hm_shuf",
+  "csv": "hm_shuf.csv",
+  "best_equation": "(-0.0017734026040569066 - 0.00014926355558145146j) / (x0 + (0.046610688376986835 - 0.26356976164627527j))",
+  "best_mse": 0.1546934880219881,
+  "mse_below_1e-3": false,
+  "complexity": 5,
+  "elapsed_s": 4520.781034708023,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

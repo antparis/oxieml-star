@@ -1,0 +1,19 @@
+{
+  "label": "vortex_N1_shuf",
+  "csv": "vortex_N1_shuffled.csv",
+  "best_equation": "exp(((inv(my_real(x0)) * my_imag(eml(x0 - (-0.9490150849043593 - 0.46338312176468655j), x0))) * (0.0365472722206683 - 0.008060820920693955j)) - (-0.22503649486078758 - 1.5885788883337626j))",
+  "best_mse": 12.751977421799277,
+  "mse_below_1e-3": false,
+  "complexity": 15,
+  "elapsed_s": 1876.1426920890808,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "label": "kirsch",
+  "csv": "kirsch_closed_form.csv",
+  "best_equation": "((my_conj(x0) + ((1.9487403604606681 + 0.40058388216343827j) / x0)) * (0.6543789731539571 - 0.018780311372577102j)) + ((x0 + ((x0 / (0.18501823533391265 - 0.008163209837113383j)) / my_conj((x0 * (x0 + x0)) * (0.9878315448629094 - 0.032572431513966035j)))) * (0.29961901848023836 - 9.287104967260698e-5j))",
+  "best_mse": 0.0273100698181838,
+  "mse_below_1e-3": false,
+  "complexity": 25,
+  "elapsed_s": 856.1968512535095,
+  "toolbox": "MIXTE (verbatim pysr_stacking.py)",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 200,
+    "maxsize": 30,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "label": "hm_vortex",
+  "csv": "hm_vortex.csv",
+  "best_equation": "emlstar(my_abs2(x0) * (-11.39180965946867 - 0.002604669092958787j), my_abs2(x0)) * (inv_bar(my_conj(eml(1.4297352437765376 - 8.701832066474566e-5j, my_abs2(x0)) * x0)) * (-8.511209195848246e-6 - 0.22829600538129463j))",
+  "best_mse": 9.195272674538958e-06,
+  "mse_below_1e-3": true,
+  "complexity": 18,
+  "elapsed_s": 4341.667809724808,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}

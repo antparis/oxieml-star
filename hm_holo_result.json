@@ -1,0 +1,19 @@
+{
+  "label": "hm_holo",
+  "csv": "hm_holo.csv",
+  "best_equation": "(2.993732072951918e-19 - 0.15915494309178618j) / x0",
+  "best_mse": 2.200696567855307e-25,
+  "mse_below_1e-3": true,
+  "complexity": 3,
+  "elapsed_s": 3021.492005109787,
+  "toolbox": "MIXTE + inv + inv_bar",
+  "pysr_config": {
+    "niterations": 30,
+    "population_size": 300,
+    "maxsize": 25,
+    "parsimony": 0.001,
+    "precision": 64,
+    "parallelism": "multithreading",
+    "deterministic": false
+  }
+}
