@@ -33,3 +33,27 @@ mirror. DIFFERENT from Hall (which had no such oriented-gradient + dissipative l
   n=phi, in phase, mirror) AND as kappa->0 (no gradient, no stream direction).
 - WARNING: keep everything spatial (frozen snapshot). Do NOT encode time as the
   imaginary axis (SPARC trap).
+
+## RESOLVED (2026-06-03, clean construction) -- frozen HW is MIRROR, indice was an artefact
+Redid the probe with the EXACT HW linear transfer factor (not the hand-shifted
+cosine). Dispersion solved: T(k) = n_k/phi_k = (alpha - i omega(k) k2)/alpha,
+omega(k) the drift-wave root. Adiabatic limit alpha->oo gives T->1 (Boltzmann,
+in phase, mirror) -- first encadrement OK.
+
+DECISIVE result (numeric, clean): T(-k) = conj(T(+k)) EXACTLY. Therefore the
+physical density n(x,y) = T(+k)e^{ik.r} + T(-k)e^{-ik.r} is REAL (max|Im n|=0),
+hence MIRROR. |mu|^2 proxy = 1.0000 for phi, n, and phi+i*n. All real -> all
+real-trapped.
+
+=> tonight's earlier "R(-ky) - conj(R(ky)) != 0" hint was an ARTEFACT of a
+bricolaged R factor, NOT the true HW transfer factor. With the correct T, the
+mirror symmetry is restored: the resistive n-phi phase lag acts conjugately on
++k and -k, and the reality of the physical density re-locks the mirror.
+
+## GENERAL LESSON (beyond Hall and HW)
+Any PHYSICALLY REAL scalar observable in a FROZEN (static) state is mirror-locked
+(b = conj a), regardless of the mechanism (oriented gradient, resistivity, phase
+lag). Genuine anti-holomorphic chirality requires EITHER a natively-complex
+observable (rare in classical physics; achieved with EHT Hermitian visibilities)
+OR the propagating/time regime (SPARC-risk, declined). Frozen real fields cannot
+be chiral. This closes the HW frozen-state line, consistent with the Hall frontier.
