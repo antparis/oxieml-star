@@ -92,3 +92,27 @@ automatically in a scalar observable with independent weights.
 CONSEQUENCE: the originally-planned test B (field a vs field b on velocity) is
 RETIRED as mis-posed. A correct test must build a SCALAR Hall observable and
 check b vs conj(a). To be reconstructed cold, not improvised.
+
+## FRONTIER ESTABLISHED (2026-06-03) -- Hall equilibrium chirality is OBSTRUCTED
+After research + four practical attempts, the conclusion is firm:
+ - Genuine independent-weight chirality (b != conj(a), additive holo+anti split)
+   does NOT exist in static Hall equilibria. Reason: equilibrium fields are
+   Helmholtz/Bessel (multiplicative z*zbar entanglement), and the additive split
+   exists only for HARMONIC fields -- which is exactly the d_i->0 (no-Hall) limit.
+   The reality of the physical field re-locks amplitudes to b=conj(a) (mirror).
+ - Every natively-complex candidate that "looks chiral" (velocity w=vx-i vy,
+   polarization P=Bx+i By) is a VECTOR in disguise -> category error, the same
+   one retired earlier today. A vector is always "chiral" for the wrong reason.
+ - "Filming from below" (spatial-axis polarization vis, no time): tested as
+   P=Bx+iBy of a CK Beltrami mode -> all m (incl m=0) come out "chiral" =
+   the category error again. P is a vector, not a scalar observable.
+CONSEQUENCE: genuine Hall chirality lives in the PROPAGATING (wave) regime
+(whistler vs ion-cyclotron, delta B_z + i delta B_perp), which requires TIME --
+and time-as-imaginary-axis re-opens the SPARC trap. So: clean Hall chirality
+AND no-time are INCOMPATIBLE. This is a clean negative result, not a failure.
+
+## Status of the Hall chiral line: CLOSED as a frontier
+Hall equilibrium = obstructed (established). Hall waves = possible but requires
+time-encoding (SPARC-risk, deliberately not pursued). Line closed with a clear
+boundary. The screened transcendental forms remain valid as DETECTABILITY
+demonstrations (cf. Hasegawa-Mima), but NOT as genuine-chirality demonstrations.
