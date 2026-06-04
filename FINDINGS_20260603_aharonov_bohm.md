@@ -1,3 +1,11 @@
+# SUPERSEDED 2026-06-04 -- see FINDINGS_20260604_aharonov_bohm.md
+# The chirality claim below is WRONG. z^(m+a/2)*zbar^(-a/2) with REAL exponents
+# factorizes as z^(a-b)*|z|^(2b) = holomorphic x real-modulus (MODULE-TRAPPED):
+# the anti part is removable by dividing out |z|, so it is NOT independent/chiral.
+# Also: the "PySR structural limit" below misread the run -- only route A (MSE 0.09)
+# was read; route B fit the target at MSE 3.6e-19 with NO log(zbar), proving the
+# target has no additive anti structure to recover. Kept for trace; conclusion void.
+
 # FINDINGS 2026-06-03 -- Aharonov-Bohm wavefunction: transcendental chiral anti-holo [DERIVATION]
 
 ## Status
