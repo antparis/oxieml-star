@@ -57,3 +57,21 @@ lag). Genuine anti-holomorphic chirality requires EITHER a natively-complex
 observable (rare in classical physics; achieved with EHT Hermitian visibilities)
 OR the propagating/time regime (SPARC-risk, declined). Frozen real fields cannot
 be chiral. This closes the HW frozen-state line, consistent with the Hall frontier.
+
+## GENERAL THEOREM CONFIRMED on flux observables (2026-06-03)
+Tested whether the FLUX (Gamma = n*v, the "flowing stream") escapes the mirror.
+Result, numeric, clean, on six candidate scalars from real (phi, n):
+  n, phi, div(n*v), n^2, n*phi, |grad phi|^2  -> ALL REAL -> ALL MIRROR.
+The flux divergence div(n*v) (a genuine scalar, "where the stream deposits") is
+real, hence mirror, like all the others.
+
+THEOREM (now demonstrated across Hall + HW + flux): any spatial scalar built
+from REAL fields by REAL operations is REAL, hence mirror-locked (b=conj a).
+No formula improvement can change this -- it is not a formula choice, it is the
+reality of the object. (Contrast eml*: there we were free to EXTEND an operator;
+here we hit a law.) Genuine anti-holomorphic chirality requires a NATIVELY
+COMPLEX observable (intrinsic phase, e.g. EHT visibilities = measured amplitude
+AND phase; wavefunctions; spinors), NOT a packaging of real fields.
+
+This closes the entire frozen-state chirality search (Hall, HW, flux) with one
+general law, and points future work to natively-complex observables only.
