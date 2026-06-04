@@ -67,3 +67,60 @@ Then PySR targets the clean power structure with NO masking background. Steps:
   4. Controls: alpha=0 de-Gaussianed -> pure z^m (holomorphic, judge says HOLO);
      alpha=2 -> (z/zbar)^1 structure (gauge-trivial); shuffle -> reject (high MSE).
 This is the clean path from [DERIVATION] to [ESTABLISHED]. Do it cold, not at session end.
+
+## PySR run 1 (2026-06-04, de-Gaussianed candidate, maxsize=20): FAILED but DIAGNOSTIC
+detect_real_data.py ab_dg_candidate.csv --niter 60, population=50, maxsize=20.
+Result: MSE = 0.0928 (>> 1e-3 threshold) => INVALID per guardrail, despite the
+PySR marker saying 'anti/emlstar'. Marker is NEVER the verdict; MSE invalidates it.
+
+KEY DIAGNOSTIC (the failure is informative, not a wall):
+The Hall of Fame final entries contain the constants 0.7071067812... (= sqrt2/2 = alpha/2)
+and 2.414213562... (= 1+sqrt2 = 1+alpha). PySR FOUND the right irrational exponents but
+could NOT assemble them into a low-MSE form. => the transcendental structure
+exp((m+alpha/2)log z) * exp(-(alpha/2) log conj(z)) IS reachable, but maxsize=20 is too
+tight to build the full form. This is a BUDGET artefact (cf. Kirsch borderline lesson),
+NOT an impossibility.
+
+## Next: rerun with bigger budget
+maxsize 35-40, population 100-200, same de-Gaussianed candidate. Test whether the
+budget was the limiter. If MSE drops < 1e-3 AND judge certifies emlstar/anti -> [ESTABLISHED].
+
+## PySR run 1 (2026-06-04, de-Gaussianed candidate, maxsize=20): FAILED but DIAGNOSTIC
+detect_real_data.py ab_dg_candidate.csv --niter 60, population=50, maxsize=20.
+Result: MSE = 0.0928 (>> 1e-3 threshold) => INVALID per guardrail, despite the
+PySR marker saying 'anti/emlstar'. Marker is NEVER the verdict; MSE invalidates it.
+
+KEY DIAGNOSTIC (the failure is informative, not a wall):
+The Hall of Fame final entries contain the constants 0.7071067812... (= sqrt2/2 = alpha/2)
+and 2.414213562... (= 1+sqrt2 = 1+alpha). PySR FOUND the right irrational exponents but
+could NOT assemble them into a low-MSE form. => the transcendental structure
+exp((m+alpha/2)log z) * exp(-(alpha/2) log conj(z)) IS reachable, but maxsize=20 is too
+tight to build the full form. This is a BUDGET artefact (cf. Kirsch borderline lesson),
+NOT an impossibility.
+
+## Next: rerun with bigger budget
+maxsize 35-40, population 100-200, same de-Gaussianed candidate. Test whether the
+budget was the limiter. If MSE drops < 1e-3 AND judge certifies emlstar/anti -> [ESTABLISHED].
+
+## PySR run 2 (2026-06-04, de-Gaussianed, BIG budget maxsize=40 pop=150 niter=100): FAILED
+Same plateau as small budget: best MSE ~0.0906 (>> 1e-3) => INVALID. The bigger
+budget did NOT help; it produced bloated overfit equations (complexity 32-38,
+nested log/my_conj/eml/emlstar) without lowering MSE. Two concordant runs (small
+and big budget, same ~0.09 plateau) => this is a STRUCTURAL limit, not a budget
+artefact.
+
+DIAGNOSIS (a real tool limitation, cleanly identified):
+PySR cannot practically RECOVER the irrational power z^(m+sqrt2/2) zbar^(-sqrt2/2)
+from data with this toolbox, even though the SymPy judge sees the transcendental
+structure exactly when GIVEN the formula. The irrational zbar power is reachable
+in principle (exp(p log conj z)) but PySR does not assemble it at low MSE.
+
+CONSEQUENCE: Aharonov-Bohm stays [DERIVATION] (mathematically chiral transcendental,
+judge-confirmed on the formula) but CANNOT be promoted to [ESTABLISHED] via the PySR
+route. The blocker is the numeric detector's inability to rediscover irrational
+exponents, NOT the physics. This is a genuine, traced limit of the PySR stage.
+
+HOLO/ANTI BALANCE NOTE: the judge (symbolic) handles transcendental anti correctly;
+the PySR translator does NOT recover it from scattered data. Tool is reliable as a
+CERTIFIER (judge on a given formula) but limited as a DISCOVERER (PySR from data) for
+irrational-power anti-holomorphy.

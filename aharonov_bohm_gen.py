@@ -39,6 +39,12 @@ def psi_AB(z, alpha, m, lB2=LB2):
     phase = np.exp(1j*th*p_z) * np.exp(-1j*th*p_zb)
     return amp*phase
 
+
+def degauss_target(z, alpha, m, lB2=LB2):
+    """psi * exp(+|z|^2/4 lB2) = z^(m+alpha/2) zbar^(-alpha/2) : pure chiral structure,
+    Gaussian background removed so PySR targets the clean power structure."""
+    return psi_AB(z, alpha, m, lB2) * np.exp(np.abs(z)**2/(4*lB2))
+
 def make_grid(N=70, L=2.5, rmin=0.15, cut_band=0.08):
     xs = np.linspace(-L, L, N)
     X, Y = np.meshgrid(xs, xs)
@@ -76,6 +82,15 @@ def main():
     write_csv("ab_shuffled.csv", z, Vc[idx])
 
     print("wrote ab_candidate.csv, ab_alpha0.csv, ab_integer.csv, ab_shuffled.csv")
+
+    # de-Gaussianed targets (Gaussian background divided out) -- clean PySR targets
+    write_csv("ab_dg_candidate.csv", z, degauss_target(z, math.sqrt(2), m))
+    write_csv("ab_dg_alpha0.csv",    z, degauss_target(z, 0.0, m))
+    write_csv("ab_dg_integer.csv",   z, degauss_target(z, 2.0, m))
+    idx2 = rng.permutation(len(z))
+    write_csv("ab_dg_shuffled.csv",  z, degauss_target(z, math.sqrt(2), m)[idx2])
+    print("wrote ab_dg_candidate.csv, ab_dg_alpha0.csv, ab_dg_integer.csv, ab_dg_shuffled.csv")
+
 
 if __name__ == "__main__":
     main()
