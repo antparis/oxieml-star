@@ -38,3 +38,32 @@ physics gives -- accepted as-is, not forced into the additive mould.
 - Run PySR (add non-integer powers / the eml* toolbox); see if it RECOVERS the transcendental
   anti form. Then judge-certify.
 - Controls: alpha=0 (must come out holomorphic), alpha integer (gauge-trivial), shuffle (reject).
+
+## Generator built + sandbox-validated (2026-06-03); PySR run DEFERRED with a strategy
+aharonov_bohm_gen.py written and validated in sandbox:
+  - psi_AB with branch fixed (polar, theta in (-pi,pi]; origin + negative-real-axis cut masked).
+  - Numeric d/dzbar matches the analytic formula to 7 decimals at test points.
+  - 4 datasets generated on machine: ab_candidate.csv (alpha=sqrt2), ab_alpha0.csv,
+    ab_integer.csv (alpha=2), ab_shuffled.csv. ~4790 points each.
+
+## Why PySR run is DEFERRED (honest risk identified)
+A quick numeric Wirtinger ratio test on the scattered grid did NOT discriminate the
+four datasets (|mu| ~2.6/2.3/2.1, shuffled ~1.0 -- the shuffled came out LOWEST,
+showing the finite-difference test is too crude/noisy to measure chirality here).
+This does NOT condemn the target (the SymPy judge sees the transcendental term
+exactly on the FORMULA), but it flags a real risk: the transcendental anti term
+zbar^(-alpha/2) is masked by the dominant real Gaussian background exp(-|z|^2/4).
+PySR might fit the Gaussian and miss the small transcendental term.
+
+## STRATEGY for the cold reprise (the key idea)
+Divide OUT the known Gaussian background BEFORE PySR:
+  psi / exp(-|z|^2/4)  =  z^(m+alpha/2) * zbar^(-alpha/2)   [pure chiral structure]
+Then PySR targets the clean power structure with NO masking background. Steps:
+  1. Add an option to aharonov_bohm_gen.py to emit the de-Gaussianed target
+     (target = psi * exp(+|z|^2/4)), giving pure z^(m+alpha/2) zbar^(-alpha/2).
+  2. Run PySR on the de-Gaussianed candidate (toolbox already has log(conj) via emlstar,
+     so zbar^p = exp(p log(zbar)) is reachable). One dataset first, not all four.
+  3. Judge-certify the recovered form (expect d/dzbar != 0 with the 1/zbar term).
+  4. Controls: alpha=0 de-Gaussianed -> pure z^m (holomorphic, judge says HOLO);
+     alpha=2 -> (z/zbar)^1 structure (gauge-trivial); shuffle -> reject (high MSE).
+This is the clean path from [DERIVATION] to [ESTABLISHED]. Do it cold, not at session end.
