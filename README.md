@@ -123,10 +123,11 @@ Using genetic programming (PySR + DEAP) with eml★ operators on **125 SPARC gal
 
 ## Verification Summary
 
-- **60 physical systems** verified across 50+ domains (all EXACT, MSE ≤ 10⁻³¹)
-- **6 formulas** rediscovered blindly from raw data
-- **549 new mathematical identities** in the {eml, eml★} framework
-- **Completeness**: {eml, eml★} proven to be the minimal complete basis
+- **Pipeline calibrated** end-to-end (PySR discoverer -> SymPy Wirtinger judge), validated on known holo/anti targets and negative (shuffle) controls.
+- **Kirsch elasticity** [ESTABLISHED]: anti-holomorphic structure forced by physics (traction-free boundary), judge-certified, MSE 3e-31.
+- **Structural no-go** [ESTABLISHED]: genuine forced-transcendental-physical anti-holomorphy is closed on three fronts (mirror / repackaging / Vekua-Balk); the "chiral cell" is empty and explained, conditional on ellipticity.
+- **CP front** [ESTABLISHED]: generalized-CP judge (Stages 1-2, Dirac+Majorana); Delta(54) type-I and Bora gCP-admissibility certified in GAP.
+- Several systems were calibrations or returned negative/invalidated results (EHT, VLA, KiDS, Aharonov-Bohm, gravitational waves) -- traced honestly in RESEARCH_LOG.md.
 - **Ramanujan**: mock theta functions (order 3, 5) computed; the raw mock theta series is HOLOMORPHIC (judge-verified, df/dzbar=0). The anti-holomorphic structure lives in the modular completion (Zwegers shadow), which is NOT yet tested. Shadow/completion test PENDING.
 
 ### Credits
