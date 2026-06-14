@@ -127,7 +127,7 @@ Using genetic programming (PySR + DEAP) with eml★ operators on **125 SPARC gal
 - **6 formulas** rediscovered blindly from raw data
 - **549 new mathematical identities** in the {eml, eml★} framework
 - **Completeness**: {eml, eml★} proven to be the minimal complete basis
-- **Ramanujan**: All anti-holomorphic shadow components of mock theta functions verified
+- **Ramanujan**: mock theta functions (order 3, 5) computed; the raw mock theta series is HOLOMORPHIC (judge-verified, df/dzbar=0). The anti-holomorphic structure lives in the modular completion (Zwegers shadow), which is NOT yet tested. Shadow/completion test PENDING.
 
 ### Credits
 
