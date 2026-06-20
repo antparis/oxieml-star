@@ -48,6 +48,19 @@ def _is_zero(e):
         return False
 
 
+def _is_module_rotation(e):
+    """Independent module-trap test (rotation generator R = z*d/dz - zbar*d/dzbar).
+    For f = holo(z)*M(z*zbar): R(M)=0 (modulus rotation-invariant), so R(f)/f = z*holo'/holo
+    depends on z ONLY. Holds for ANY holomorphic factor (monomial or not). This is independent
+    of the judge's L = zbar*dlog/dzbar criterion (different operator/direction)."""
+    try:
+        Rf = sp.simplify(z * sp.diff(e, z) - zbar * sp.diff(e, zbar))
+        ratio = sp.simplify(Rf / e)
+        return _is_zero(sp.simplify(sp.diff(ratio, zbar)))
+    except Exception:
+        return False
+
+
 def ref_classify(expr):
     e = sp.expand(expr)
     dzbar = sp.simplify(sp.diff(e, zbar))
@@ -58,13 +71,8 @@ def ref_classify(expr):
     dz = sp.simplify(sp.diff(e, z))
     if _is_zero(dz):
         return ANTI
-    for k in range(1, MODULE_K_MAX + 1):
-        try:
-            g = sp.simplify(e / (z * zbar) ** k)
-            if _is_zero(sp.diff(g, zbar)):
-                return MODULE_TRAPPED
-        except Exception:
-            pass
+    if _is_module_rotation(e):
+        return MODULE_TRAPPED
     return MIXED
 
 
@@ -165,6 +173,22 @@ def gold_controls():
         ("z^2 * zbar = z*|z|^2 (MODULE-TRAP)", z ** 2 * zbar),
         ("(z+1)*|z|^2 (MODULE-TRAP)", (z + 1) * z * zbar),
         ("z * zbar^2 = |z|^4 / z (MODULE-TRAP)", z * zbar ** 2),
+        # --- transcendental controls (added 2026-06-20, lift the SymPy reservation on the Maass shadow) ---
+        ("z*exp(|z|^2) (MODULE-TRAP transc.)", z * sp.exp(z * zbar)),
+        ("z^2*besselj(0,|z|^2) (MODULE-TRAP transc.)", z ** 2 * sp.besselj(0, z * zbar)),
+        ("z*Gamma(1/2,|z|^2) (MODULE-TRAP transc.)", z * sp.uppergamma(sp.Rational(1, 2), z * zbar)),
+        ("z^3*log(|z|^2) (MODULE-TRAP transc.)", z ** 3 * sp.log(z * zbar)),
+        ("(1/z)*exp(|z|^2) (MODULE-TRAP transc.)", sp.exp(z * zbar) / z),
+        ("z*erf(|z|^2) (MODULE-TRAP transc.)", z * sp.erf(z * zbar)),
+        ("exp(|z|^2) (REAL-TRAP transc.)", sp.exp(z * zbar)),
+        ("besselj(0,|z|^2) (REAL-TRAP transc.)", sp.besselj(0, z * zbar)),
+        ("Gamma(1/2,|z|^2) (REAL-TRAP transc.)", sp.uppergamma(sp.Rational(1, 2), z * zbar)),
+        ("exp(zbar) (ANTI transc.)", sp.exp(zbar)),
+        ("z+exp(zbar) (MIXED transc.)", z + sp.exp(zbar)),
+        ("besselj(0,zbar) (ANTI transc.)", sp.besselj(0, zbar)),
+        ("Gamma(1/2,zbar) (ANTI transc.)", sp.uppergamma(sp.Rational(1, 2), zbar)),
+        ("exp(z) (HOL transc.)", sp.exp(z)),
+        ("besselj(0,z) (HOL transc.)", sp.besselj(0, z)),
     ]
 
 
