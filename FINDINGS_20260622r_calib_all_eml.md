@@ -1,4 +1,4 @@
-# FINDINGS 2026-06-22g -- judge_v2 calibration across eml / eml* / eml0 + spin axis
+# FINDINGS 2026-06-22r -- judge_v2 calibration across eml / eml* / eml0 + spin axis
 
 Status: [ESTABLISHED] for the classification criterion (executed + certified on machine).
         [DERIVATION] for the physical (parity-broken LCFT / IQH) realization.

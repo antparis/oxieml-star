@@ -109,3 +109,13 @@ venv_gw/
 calib_b64.txt
 F_b64.txt
 *_BACKUP_*.py
+refs/
+fractal_images/
+data/battery/
+*.npz
+cnative_bench_report_*.json
+README.md.bak2_*
+fractal_*.txt
+gw_pysr_results.json
+detect_ab_dg_candidate_result.json
+pysr_vortex_calib_result.json
