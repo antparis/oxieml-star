@@ -98,6 +98,34 @@ def _gen_in(sym, rng, depth):
     raise RuntimeError("unreachable")
 
 
+def _simple_arg(sym, rng):
+    """A depth-1 atom: sym, c*sym, or c*sym+d. Never an already-composed expr."""
+    r = rng.random()
+    if r < 0.4:
+        return sym
+    elif r < 0.7:
+        return _const(rng) * sym
+    else:
+        return _const(rng) * sym + _const(rng)
+
+
+def _gen_enriched(sym, rng, depth):
+    """Bridled enrichment: half the time the classic generator, half the time a
+    transcendental (sin/cos/pow) applied ONCE to a simple atom. No nesting of
+    transcendentals -> SymPy cannot explode. Single-symbol -> ground truth kept."""
+    if rng.random() < 0.5:
+        return _gen_in(sym, rng, depth)
+    fn = rng.choice(["sin", "cos", "pow2", "pow3"])
+    arg = _simple_arg(sym, rng)
+    if fn == "sin":
+        return sp.sin(arg)
+    if fn == "cos":
+        return sp.cos(arg)
+    if fn == "pow2":
+        return arg ** 2
+    return arg ** 3
+
+
 def _ensure_has(expr_fn, sym, rng, depth):
     for _ in range(8):
         e = expr_fn(sym, rng, depth)
@@ -107,11 +135,11 @@ def _ensure_has(expr_fn, sym, rng, depth):
 
 
 def gen_holo(rng, depth):
-    return _ensure_has(_gen_in, z, rng, depth)
+    return _ensure_has(_gen_enriched, z, rng, depth)
 
 
 def gen_anti(rng, depth):
-    return _ensure_has(_gen_in, zbar, rng, depth)
+    return _ensure_has(_gen_enriched, zbar, rng, depth)
 
 
 def gen_mixed(rng, depth):

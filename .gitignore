@@ -103,3 +103,9 @@ noise_robustness_result.json
 data/b2_*.csv
 data/calib_*.csv
 data/jouk_*.csv
+
+# --- Session 2026-06-22 ---
+venv_gw/
+calib_b64.txt
+F_b64.txt
+*_BACKUP_*.py
