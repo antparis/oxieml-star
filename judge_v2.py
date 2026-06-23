@@ -33,7 +33,7 @@ def full_conj(expr):
 
 def is_module_trapped(expr):
     """True iff f factors as holo(z) * real_modulus(z*zbar). Test via log-derivative:
-    if f = h(z)*m(z*zbar), then zbar*dlog(f)/dzbar = (z*zbar)*m'/m is REAL and depends on the
+    if f = h(z)*m(z*zbar), then zbar*dlog(f)/dzbar = (z*zbar)*m'/m depends on the
     product z*zbar ONLY. Additive holo+anti sums fail this (genuine anti). Requires dfdz, dfdzbar != 0."""
     expr = sp.expand(expr)
     dfdzbar = sp.simplify(sp.diff(expr, zbar))
@@ -49,7 +49,11 @@ def is_module_trapped(expr):
         # power (imaginary exponent, e.g. |z|^(is) inverse-square). Catch it too.
         L_const = (sp.simplify(sp.diff(L, z)) == 0 and sp.simplify(sp.diff(L, zbar)) == 0)
         L_pure_imag = (sp.simplify(L + full_conj(L)) == 0)
-        return bool((L_real or (L_const and L_pure_imag)) and prod_only)
+        # 2026-06-23: module-trapped iff L depends on |z|^2 ONLY (prod_only).
+        # f then factors as holo(z)*radial_envelope(|z|^2), real OR complex
+        # (complex radial phase = dispersive chirp). Earlier real/pure-imag
+        # sub-cases were too narrow. No genuine anti has prod_only True.
+        return bool(prod_only)
     except Exception:
         return False
 
