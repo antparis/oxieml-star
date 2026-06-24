@@ -1,60 +1,77 @@
 #!/usr/bin/env python3
 """layers_bench.py -- emergence by superposition (orthogonal-axis bench, M-IV).
 
-Question: can the cross-coupling (target-type, d_z1 d_z2b log f != 0) appear WITHOUT
-an explicit coupling term g*z1*z2b -- just by stacking factorized layers (walls)?
-Answer: YES, if you stack two DISTINCT fields by SUM, not by PRODUCT.
+Question: can a target-type cross-coupling appear by stacking factorized layers?
+Answer: it depends, and the bench is now honest about what is ALGEBRAIC vs PHYSICAL.
 
-  PRODUCT of factored layers  -> log(product) = sum of separate logs -> d = 0 -> WALL.
-  SUM of two DISTINCT fields   -> log(sum) does NOT separate          -> d != 0 -> EMERGES.
-  ONE field + its own mirror (z + zbar) = 2 Re(z)                     -> REAL_TRAPPED wall (the trap).
-  Mixing amplitude a tunes the weight; a=0 decouples (channel off).
+WHAT IS ALGEBRAICALLY DECIDABLE (this bench):
+  (1) NON-FACTORIZABLE: d = d_z1 d_z2b log f != 0  (cross discriminant). Robust.
+  (2) EXPLICIT pairing: a separated form with COMPLEX conjugate coefficients
+      (alpha*u(z1) + conj(alpha)*u(z2b)) is full_conj-invariant -> REAL_TRAPPED. Robust.
 
-Consequence for the hunt: emergence is NECESSARY, not sufficient. The cross term appears
-for ANY additive sum of two distinct symbols, but a concrete physical system only realizes
-the target if its two channels are (i) natively complex, (ii) reality relaxed in a
-NON-gauge way (genuinely non-Hermitian / out-of-equilibrium), and (iii) non-reducible to
-one another (Naimark-irreducible). If channel 2 reduces to conj(channel 1), the sum
-collapses to z + zbar = real-trapped.
+WHAT IS NOT ALGEBRAICALLY DECIDABLE (corrected 2026-06-24, after f644663):
+  For two DISTINCT fields, the full_conj swap z1<->z2b is NOT the reality involution: it
+  identifies z2b as conj(z1), valid only for ONE field. The true involution sends z1->conj(z1)
+  and z2b->z2 (variables absent from the form). So whether z1+z2b is real-trapped or a genuine
+  crossing is a PHYSICAL question (are the two channels reality-related?), NOT readable from the
+  symbolic form. Earlier version wrongly swapped z1<->z2b universally and mislabeled z1+z2b.
 
-CAUTION (corrected 2026-06-24): a standard UNITARY interferometer is NOT a candidate. Its
-two amplitudes live in one Hilbert space and the observable |A1+A2|^2 makes zbar appear as
-the conjugate of the SAME object -> paired -> REAL_TRAPPED (exactly the z+zbar trap below).
-Only NON-Hermitian / out-of-equilibrium two-channel systems with non-reducible channels
-qualify. "Interferometer" without that qualifier is a wall.
+VERDICTS (two distinct fields z1, z2b):
+  d == 0                                  -> WALL (factorizes)
+  d != 0, full_conj-invariant, has I      -> WALL (real-trapped: explicit conjugate coefficients)
+  d != 0, full_conj-invariant, no I       -> PHYSICAL (non-factorizable; pairing is a physical question)
+  d != 0, NOT full_conj-invariant         -> CANDIDATE (non-factorizable AND not explicitly paired)
+ONE field (z, zb): full_conj z<->zb is the true involution; z+zb -> REAL_TRAPPED.
 
-Discriminant d = d_z1 d_z2b log f, symbolic-exact (verdict identical on the judge machine).
-Authority remains judge_v2 / nonseparable_judge. English only."""
+The full_conj swap is valid for ONE field, and for the EXPLICIT-coefficient signature only.
+Authority remains judge_v2 / nonseparable_judge / nh_lcft_pairing_judge on the machine."""
 import sympy as sp
-z1, z2b = sp.symbols('z1 z2b')        # two DISTINCT fields: left (holo), right (anti)
-z, zb   = sp.symbols('z zb')           # ONE field and its own conjugate
+z1, z2b = sp.symbols('z1 z2b')
+z, zb   = sp.symbols('z zb')
 a       = sp.symbols('a')
+ar, ai  = sp.symbols('ar ai', real=True)
+I       = sp.I
+
 def disc(f):
     return sp.simplify(sp.diff(sp.log(f), z1, z2b))
-def full_conj(f):                       # reality test for one-field forms: z<->zb, I->-I
-    return f.subs({z: zb, zb: z, sp.I: -sp.I}, simultaneous=True)
-def show(f, name):
+def fc2(f):                                # two-field swap + conjugate (I->-I)
+    return f.subs({z1: z2b, z2b: z1, I: -I}, simultaneous=True)
+def verdict2(f):
     d = disc(f)
-    print(f"{name:46s} | d = {str(d):28s} | {'WALL' if d==0 else 'EMERGES -> target-type'}")
-print("="*108)
-print("PRODUCT layering (multiply walls) -> stays a wall:")
+    if d == 0:
+        return "WALL (factorizes)"
+    if sp.simplify(fc2(f) - f) == 0:
+        return ("WALL (real-trapped: explicit conj coeffs)" if f.has(I)
+                else "PHYSICAL (non-factorizable; pairing is physical)")
+    return "CANDIDATE (non-factorizable AND not explicitly paired)"
+def show(f, name):
+    print(f"{name:42s} | {verdict2(f)}")
+
+print("="*100)
+print("PRODUCT layering -> factorizes -> wall:")
 show(sp.exp(z1)*sp.exp(z2b),            "exp(z1)*exp(z2b)")
 show((z1**2*z2b)*(z1*z2b**3),           "(z1^2 z2b)*(z1 z2b^3)")
-print("-"*108)
-print("SUM layering (superpose two DISTINCT fields, no explicit g) -> emerges:")
+print("-"*100)
+print("SUM of two distinct fields (no explicit g) -> non-factorizable, pairing PHYSICAL:")
 show(z1 + z2b,                          "z1 + z2b")
 show(sp.exp(z1) + sp.exp(z2b),          "exp(z1) + exp(z2b)")
-print("-"*108)
-print("EXPLICIT COUPLING (anchor 20204b2, NOT superposition -- contains g=z1*z2b):")
+print("-"*100)
+print("EXPLICIT COUPLING (anchor 20204b2, g=z1*z2b):")
 show(z1*z2b + 1,                        "z1*z2b + 1")
-print("-"*108)
-print("TRAP: one field + its own reflection (z + zbar):")
+print("-"*100)
+print("REGRESSION 1 -- explicit conj-paired coeffs MUST be WALL:")
+acmp = ar + I*ai
+show(1 + acmp*sp.log(z1) + (ar - I*ai)*sp.log(z2b), "1 + a*log z1 + conj(a)*log z2b")
+print("REGRESSION 2 -- z1+z2b MUST be PHYSICAL (not target, not wall):")
+show(z1 + z2b,                          "z1 + z2b (re-check)")
+print("-"*100)
+print("MIXED additive argument -> not explicitly paired -> CANDIDATE:")
+show(sp.log(z1 - z2b),                  "log(z1 - z2b)")
+print("-"*100)
+print("ONE field + its mirror (true involution z<->zb):")
 ex = z + zb
-print(f"  z + zb : full_conj invariant = {sp.simplify(full_conj(ex)-ex)==0}  -> REAL_TRAPPED (=2 Re z, wall)")
-print("-"*108)
-print("INTERFERENCE WEIGHT: mixing amplitude a tunes the weight, a=0 decouples:")
-show(z1 + a*z2b,                        "z1 + a*z2b")
-print("="*108)
-print("READ: product->wall ; sum of two DISTINCT fields->emerges (no explicit g) ;")
-print("      z1*z2b->explicit coupling (anchor, not superposition) ; one-field self-sum->real-trapped.")
-print("      A unitary interferometer is the z+zbar trap, NOT a candidate.")
+inv1 = sp.simplify(ex.subs({z: zb, zb: z, I: -I}, simultaneous=True) - ex) == 0
+print(f"  z + zb : full_conj(z<->zb) invariant = {inv1} -> REAL_TRAPPED (=2 Re z, wall)")
+print("="*100)
+print("READ: target needs d!=0 AND genuinely non-paired. Explicit conj coeffs = wall.")
+print("      z1+z2b is PHYSICAL: only the physical system decides if the channels are distinct.")
