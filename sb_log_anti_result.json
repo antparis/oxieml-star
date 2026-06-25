@@ -1,0 +1,16 @@
+{
+  "case": "log_anti",
+  "expect": "anti-holomorphic",
+  "judge_label": "LIMIT-reconstruction-timeout",
+  "f_hat": null,
+  "g_re": "log(Abs(cos(x0)*cos(x1) - 1*1.1826261)) + 0.449693",
+  "g_im": "(x0*x1 - x1)*(1.4564341/Abs(x1))",
+  "mse_re": 0.003984586,
+  "mse_im": 0.1486078,
+  "mse_below_1e_3": false,
+  "passed": false,
+  "reconstruction_timed_out": true,
+  "exact_required": false,
+  "note": "branch cut",
+  "marker_note": "MARKER != VERDICT. Re+Im reconstruct + judge_v2."
+}

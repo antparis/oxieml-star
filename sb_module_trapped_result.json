@@ -1,0 +1,13 @@
+{
+  "case": "module_trapped",
+  "expect": "module-trapped",
+  "judge_label": "module-trapped",
+  "f_hat": "z**2*zbar",
+  "mse_re": 8.9853035e-15,
+  "mse_im": 7.878113e-15,
+  "mse_below_1e_3": true,
+  "passed": true,
+  "exact_required": true,
+  "note": "",
+  "marker_note": "MARKER != VERDICT. Re+Im reconstruct + judge_v2."
+}

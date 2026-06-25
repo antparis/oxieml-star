@@ -1,0 +1,16 @@
+{
+  "case": "shuffle",
+  "expect": "REJECT",
+  "judge_label": "anti-holomorphic",
+  "f_hat": "0.0166728262233632*z**3 + 0.0166728262233632*z**2*zbar - 0.0166728262233632*z*zbar**2 - 0.0166728262233632*zbar**3 + exp(z/2 + zbar/2) - 1.2362179",
+  "g_re": "exp(x0) - 1.2362179",
+  "g_im": "(0.133382609786906*x0**2)*x1",
+  "mse_re": 0.3988775,
+  "mse_im": 1.042752,
+  "mse_below_1e_3": false,
+  "passed": true,
+  "reconstruction_timed_out": false,
+  "exact_required": false,
+  "note": "negative control",
+  "marker_note": "MARKER != VERDICT. Re+Im reconstruct + judge_v2."
+}

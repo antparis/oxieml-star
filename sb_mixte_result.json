@@ -1,0 +1,16 @@
+{
+  "case": "mixte",
+  "expect": "anti-holomorphic",
+  "judge_label": "anti-holomorphic",
+  "f_hat": "(5.87398769164619*(z - zbar)*exp(z/2 + zbar/2) + (z + zbar + 3.1904528)*exp(z) + (z + zbar + 3.1904528)*exp(zbar))*exp(-z/2 - zbar/2)/4",
+  "g_re": "(x0 + 1.5952264)*cos(x1)",
+  "g_im": "x1/0.3404842",
+  "mse_re": 0.0942153,
+  "mse_im": 1.3996878,
+  "mse_below_1e_3": false,
+  "passed": false,
+  "reconstruction_timed_out": false,
+  "exact_required": false,
+  "note": "branch cut",
+  "marker_note": "MARKER != VERDICT. Re+Im reconstruct + judge_v2."
+}

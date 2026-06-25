@@ -1,0 +1,11 @@
+{
+  "case": "poly",
+  "judge_label": "holomorphic",
+  "f_hat": "x0**2 + 2.0*I*x0*x1 + x0 - x1**2 + I*x1",
+  "mse_re": 1.2756561e-14,
+  "mse_im": 6.5733653e-15,
+  "mse_below_1e-3": true,
+  "holomorphic": true,
+  "irreproachable": true,
+  "note": "MARKER != VERDICT. Re alone is holo/anti-ambiguous; Re+Im reconstruct + judge."
+}

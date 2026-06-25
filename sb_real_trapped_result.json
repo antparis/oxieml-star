@@ -1,0 +1,16 @@
+{
+  "case": "real_trapped",
+  "expect": "real-trapped",
+  "judge_label": "real-trapped",
+  "f_hat": "z*zbar",
+  "g_re": "x0**2 + x1**2",
+  "g_im": "1.13508600000000e-19",
+  "mse_re": 5.4225237e-15,
+  "mse_im": 3.2077592e-34,
+  "mse_below_1e_3": true,
+  "passed": true,
+  "reconstruction_timed_out": false,
+  "exact_required": true,
+  "note": "",
+  "marker_note": "MARKER != VERDICT. Re+Im reconstruct + judge_v2."
+}

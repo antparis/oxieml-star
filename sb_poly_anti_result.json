@@ -1,0 +1,13 @@
+{
+  "case": "poly_anti",
+  "expect": "anti-holomorphic",
+  "judge_label": "anti-holomorphic",
+  "f_hat": "1.0*zbar**2",
+  "mse_re": 3.854262e-15,
+  "mse_im": 1.5724773e-15,
+  "mse_below_1e_3": true,
+  "passed": true,
+  "exact_required": true,
+  "note": "",
+  "marker_note": "MARKER != VERDICT. Re+Im reconstruct + judge_v2."
+}
