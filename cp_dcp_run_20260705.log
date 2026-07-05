@@ -1,0 +1,35 @@
+nohup: les entrées sont ignorées
+==============================================================================
+delta_CP / Jarlskog test on the T' lepton model -- two tribunals (CP-judge)
+Authority: THIS execution. No verdict valid until run here.
+==============================================================================
+--- full     chi2=   0.91  tau=-0.0514+1.0895i  J=-8.130898e-03
+--- holo     chi2=   0.23  tau=-0.0579+1.0125i  J=+3.021078e-02
+--- nonholo  chi2=   0.04  tau=-0.0627+1.0352i  J=-2.685558e-02
+
+[L2] same tau (full best-fit), modes swapped on Y2pp:
+     full     J=-8.130898e-03
+     holo     J=-3.449908e-02
+     nonholo  J=-1.323804e-02
+
+[NULL] Re(tau)=0 (imaginary axis), full best-fit otherwise -> J must -> 0:
+     J(Re tau=0)=+0.000e+00
+
+[ORTHOGONAL AXIS] sweep Re(tau) at fixed Im/g2/beta/gamma (full best-fit):
+     Re(tau)=-0.40  J=-2.562472e-03
+     Re(tau)=-0.30  J=-2.055774e-02
+     Re(tau)=-0.15  J=-2.096483e-02
+     Re(tau)=-0.05  J=-7.913154e-03
+     Re(tau)=+0.00  J=+0.000000e+00
+     Re(tau)=+0.05  J=+7.913154e-03
+     Re(tau)=+0.15  J=+2.096483e-02
+     Re(tau)=+0.30  J=+2.055774e-02
+     Re(tau)=+0.40  J=+2.562472e-03
+     ODD in Re(tau) and J(0)~0 ? True
+
+------------------------------------------------------------------------------
+READING: J_full=-8.131e-03  J_holo=+3.021e-02  J_nonholo=-2.686e-02
+  -> |J_holo| ~ |J_full|: cutting eml* does NOT kill J. eml* DECORATIVE for delta_CP.
+     Consistent with the navigation law and the prior auditor expectation.
+  STATUS: [HEURISTIC] from this single model; not a statement about nature.
+------------------------------------------------------------------------------
