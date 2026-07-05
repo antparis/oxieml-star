@@ -2,8 +2,8 @@
 """Clean necessity test: FULL chi2 (8 observables) with tau hard-constrained to the
 fundamental domain. 8 obs / 5 params => overfitting broken. Three models at equal
 param count: FULL, HOLO-ONLY, ANTI-ONLY, each strong-multistart re-minimized.
-Verdict: HOLO-ONLY stays bad in-domain & FULL good => anti-holo NECESSARY.
-Run on Anthony's machine. Arbiter = this execution."""
+Verdict must be READ from the executed chi2 values, never pre-baked. Prior machine
+run (see RESEARCH_LOG) showed the anti term DECORATIVE on this test. Arbiter = execution."""
 import numpy as np
 from scipy.optimize import minimize
 from mpmath import mp, mpf, pi, exp, mpc, j as I, qp, sqrt, log, gammainc, euler, loggamma
@@ -86,4 +86,4 @@ for mode in ['full','holo','nonholo']:
     print(f"--- {mode} --- chi2={c:.2f}  tau={p[0]:.3f}+{p[1]:.3f}i")
     print(f"    s12={o[0]:.3f} s13={o[1]:.4f} s23={o[2]:.3f} dmr={o[3]:.4f} me/mmu={o[5]:.5f} mmu/mtau={o[6]:.5f}")
 print()
-print("VERDICT: HOLO-ONLY chi2 >> FULL chi2 (both in-domain) => anti-holomorphic term NECESSARY.")
+print("NOTE: verdict = the executed chi2 comparison above. Stale hardcoded claim removed 2026-07-03; prior machine run: anti term DECORATIVE on this test.")

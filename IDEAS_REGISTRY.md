@@ -61,3 +61,13 @@ NEUTRINO SECTOR NOW CLOSED AT EVERY LEVEL (real observables 20260623b + delta_CP
 Trace: FINDINGS_20260705_dcp_jarlskog.md · Log: cp_dcp_run_20260705.log ·
 Script: cp_dcp_test.py sha256 09f29ce5...3cc1
 #036 [HEURISTIC] delta_CP (Jarlskog) closed on the Qu-Lu-Ding T-prime model: eml* DECORATIVE for CP. Per-mode in-domain scan (21 starts): J_full=-8.13e-03, J_holo=+3.02e-02, J_nonholo=-2.69e-02 (|J_holo|~3.7x|J_full|, cut does NOT kill J); chi2 anchor 0.91/0.23/0.04 reproduces FINDINGS_20260623b. NULL: J(Re tau=0)=exact 0; sweep: J ODD in Re(tau), J(0)=0 -> CP phase lives entirely in Re(tau) i.e. q=exp(2 pi i tau), shared identically by eml AND eml* -> eml* co-occupant, not carrier. Confirms 2026-06-23 auditor prediction. L1 bounded: cut removes eml* from Dirac MD only (Me_b keeps Maass anti in all modes). Structural closure, not budget. NEUTRINO SECTOR CLOSED AT EVERY LEVEL (real obs 20260623b + delta_CP). Log cp_dcp_run_20260705.log, script cp_dcp_test.py sha256 09f29ce5. — FINDINGS_20260705_dcp_jarlskog.md
+
+#036 [2026-07-05] delta_CP / Jarlskog: eml* DECORATIVE -- neutrino wall closed at 6th level.
+Two tribunals: per-mode refit (J_full=-8.131e-03, J_holo=+3.021e-02, J_nonholo=-2.686e-02)
+and frozen-tau L2 (J_holo=-3.450e-02, J_nonholo=-1.324e-02): cutting eml* never sends J->0.
+NULL control J(Re tau=0)=0 machine zero; sweep odd in Re(tau): the CP phase originates in
+Re(tau) via q=exp(2*pi*i*tau), present in BOTH towers -- not in the anti needle.
+chi2 anchors 0.91/0.23/0.04 reproduce FINDINGS_20260623b exactly.
+Status: execution [ESTABLISHED machine]; reading [HEURISTIC] internal to the T' model.
+Reserves bounded (Majorana out of scope; Me_b not ablated in holo mode; thresholds moot).
+Trace: FINDINGS_20260705_dcp_jarlskog_decorative.md + cp_dcp_run_20260705.log.

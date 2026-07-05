@@ -1,3 +1,13 @@
+# [REVISED 2026-06-29] This note OVERSELLS its CONCLUSION, not its content. Machine audit:
+# (1) full_conj(f)=conj(f) on the diagonal EXACTLY (incl. branch-cut transcendentals)
+#     => "invariant <=> real" is a TAUTOLOGY (the trivial mirror theorem).
+# (2) the BROAD wording "measurable => reducible" is too strong: Kirsch/Stokes are
+#     measurable native-complex fields carrying algebraic anti.
+# (3) the NARROW correlator claim is a CONJECTURE [DERIVATION], neither proven nor
+#     refuted here; it stays OPEN. The mirror theorem is established (trivially).
+# NET: this does NOT close the central question, but the correlator conjecture retains
+# its value as an open lead. Only the word "closes" is retracted. (lemma_audit.py)
+
 # FINDINGS 2026-06-22q -- Gluing closed by a GENERAL argument: the lemma is proven (two hermiticity levels), beyond the brick proof
 
 ## Status
