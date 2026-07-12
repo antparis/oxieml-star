@@ -41,3 +41,22 @@ into our own instrument -- the reader learns to write.
 ## Traces
 kernel_oriented_bell_test.py -- judge_bell_054.py --
 bell_machine_run.log (local) -- this file.
+
+## ADDENDUM 2026-07-11 (same day, post-graving) -- gate CLOSED by external audit
+The prior-art gate flagged PENDING above has been closed the same day by
+the Cowork instance's independent audit (AUDIT_20260711_oriented_bell.md,
+committed alongside): race logic (UCSB ISCA'14) and RSFQ pulse logic are
+generic timing-decision walls; the CLOSEST NEIGHBOR is the SAGNAC
+interferometer / laser gyroscope (orientation read from counter-propagating
+waves; cite prominently in any write-up). Narrowed sole "apparently new"
+candidate after the gate: orientation read from MODULUS-ONLY relief data
+plus a known reference note, in LOGARITHMIC scale, from a SELF-GENERATED
+(hierarchy-free) chiral rendezvous -- where Sagnac requires phase-sensitive
+readout and an external rotation. Auditor's scale position, adopted:
+#054 is a COROLLARY-APPLICATION of #052 (J3 is a hand-provable corollary;
+the code is #052's discriminator used as a channel), instrument-scale.
+The audit also constitutes a THIRD independent reproduction of all four
+panels (J3 residue 3.55e-15, BER 0/32 at all noise levels).
+Numbering note: #053 remains RESERVED for the staircase-tears campaign
+(framing delivered, harness not yet built); the #052 -> #054 sequence gap
+is intentional and traced here.
