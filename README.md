@@ -70,42 +70,31 @@ GitHub: [antparis/eml_star](https://github.com/antparis/eml_star)
 
 ---
 
-## Application: Galaxy Rotation Curves (May 2026)
+## Archived application: Galaxy Rotation Curves (May 2026)
 
-The eml★ framework was applied to real astrophysical data — galaxy rotation curves — demonstrating its first empirical application.
+**STATUS: INVALIDATED. This analysis is retained only as a provenance record
+and must not be cited as evidence of physical anti-holomorphic structure.**
 
-### What we found
+An earlier analysis applied eml★ operators to 125 SPARC galaxies and 23 LITTLE
+THINGS dwarf galaxies. Its positive interpretation was invalid: the source
+observables (radii and rotation velocities) are intrinsically real, and the
+chosen real-to-complex encoding itself forced the apparent conjugate structure.
+The detector was reading the representation, not a physical property of the
+galaxies.
 
-Using genetic programming (PySR + DEAP) with eml★ operators on **125 SPARC galaxies** and **23 LITTLE THINGS dwarf galaxies**:
+Consequently, the previously reported correlation, replication percentage and
+predictor comparisons do not establish that galaxies require anti-holomorphic
+terms. They are archived historical outputs, not current project results.
 
-1. **eml★ is a non-holomorphicity detector** — 0/10 false positives on holomorphic functions, 10/10 detection on anti-holomorphic functions.
-2. **Low-luminosity galaxies need anti-holomorphic terms** — Spearman rho = -0.27, p = 0.004.
-3. **Signal replicates independently** — 43.5% on LITTLE THINGS, consistent with SPARC.
-4. **MOND and dark matter fraction ruled out** as predictors (p = 0.35 and p = 0.81).
+The withdrawn paper and drafts are preserved under
+[`_archive_invalidated/`](_archive_invalidated/README.md), with the reason for
+withdrawal. The current detector requires natively complex data and an explicit
+SPARC test showing that the anti-holomorphic dependence cannot be removed by an
+admissible change of representation.
 
-### Tools
-
-| Tool | Description |
-|------|-------------|
-| `discover_gp.py` | GP engine (DEAP) with eml★ operators |
-| `pysr_complex_wrapper.py` | PySR (Julia) wrapper for high-power batch runs |
-| `meta_analysis.py` | Statistical analysis + Plotly dashboard |
-| `formula_translator.py` | GP formulas to LaTeX |
-| `galaxy_analysis.py` | 9-panel per-galaxy diagnostics |
-| `make_3d_viz.py` | 3D interactive visualization |
-
-### Galaxy Paper
-
-[**eml★ galaxy rotation curves paper (PDF)**](eml_star_galaxy_paper.pdf) — "Symbolic regression with anti-holomorphic operators reveals non-holomorphic structure in low-luminosity galaxy rotation curves"
-
-### Interactive Demo
-
-[**eml★ Interactive Explorer**](https://antparis.github.io/oxieml-star/emlstar_explorer.html) — Try eml★ operators in your browser (3D visualization, no installation needed).
-
-### Paper
-
-[Draft on GitHub](https://github.com/antparis/oxieml-star/blob/master/eml_star_paper_draft3.md) |
-[eml★ theory on Zenodo (DOI: 10.5281/zenodo.20091022)](https://zenodo.org/records/20091023)
+The general visualization remains available as an
+[interactive eml★ explorer](https://antparis.github.io/oxieml-star/emlstar_explorer.html),
+but it is not evidence for the invalidated galaxy claim.
 
 ## Related Work
 
@@ -124,6 +113,9 @@ Using genetic programming (PySR + DEAP) with eml★ operators on **125 SPARC gal
 ## Verification Summary
 
 - **Pipeline calibrated** end-to-end (PySR discoverer -> SymPy Wirtinger judge), validated on known holo/anti targets and negative (shuffle) controls.
+- **Galaxy rotation curves** [INVALIDATED]: the SPARC/LITTLE THINGS signal was
+  produced by a forced real-to-complex encoding and is not a physical eml★
+  detection; see `_archive_invalidated/README.md`.
 - **Kirsch elasticity** [ESTABLISHED]: anti-holomorphic structure forced by physics (traction-free boundary), judge-certified, MSE 3e-31.
 - **Structural no-go** [ESTABLISHED]: genuine forced-transcendental-physical anti-holomorphy is closed on three fronts (mirror / repackaging / Vekua-Balk); the "chiral cell" is empty and explained, conditional on ellipticity.
 - **CP front** [ESTABLISHED]: generalized-CP judge (Stages 1-2, Dirac+Majorana); Delta(54) type-I and Bora gCP-admissibility certified in GAP.
