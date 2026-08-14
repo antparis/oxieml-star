@@ -1,0 +1,5 @@
+run_id=20260814T152608Z
+runner=/home/anthony/Téléchargements/run_wc_covariant_v2_on_anthony_machine.sh
+judge=/home/anthony/Téléchargements/wc_covariant_test_v2_candidate.py
+expected_judge_sha256=8c432b074dff7b8d6ee9acf4f7275dc9140a61fd9ccab48cdd8e152a86214d0c
+started_utc=2026-08-14T15:26:09Z

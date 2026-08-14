@@ -1,0 +1,2 @@
+ac1c822a0b8b8197e93a11531bc00959608e25ea840b1dbdc84fac692b386fae  /home/anthony/Téléchargements/run_wc_covariant_v2_on_anthony_machine.sh
+8c432b074dff7b8d6ee9acf4f7275dc9140a61fd9ccab48cdd8e152a86214d0c  /home/anthony/Téléchargements/wc_covariant_test_v2_candidate.py
