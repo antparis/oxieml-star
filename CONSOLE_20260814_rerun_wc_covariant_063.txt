@@ -1,0 +1,23 @@
+python=3.12.3 (main, Jun 19 2026, 12:46:00) [GCC 13.3.0]
+platform=Linux-7.0.0-28-generic-x86_64-with-glibc2.39
+sympy=1.14.0
+========================================================================
+W_C COVARIANT WITNESS -- judge harness (#063 candidate)
+========================================================================
+[PASS] J0  non-diagonal C breaks the two-sector structure (scope: diagonal C) -- S_C(G)_11 = b*d*log(1 - X)/(a*d - b**2)
+[PASS] J1a tour-6 kernel is C-reciprocal: R_C = 0 (4 entries)
+[PASS] J1b raw witness FIRES falsely on it (c1=2,c2=1) -- W_raw = 2*I*pi*(-c1 + c2)/c2
+[PASS] J1c covariant witness is SILENT on it: W_C = 0 exactly
+[PASS] J2  reduction: W_C|_{C=I} = W identically (generic discs)
+[PASS] J3  covariance: W_C(S_C(G)) = -W_C(G) exactly (generic kernel)
+[PASS] J4a calibrated K_eps is C-NON-reciprocal: R_C != 0 -- R_C[21] = X**2*epsilon
+[PASS] J4b yet W_C(K_eps) = 0 -- sufficient, NEVER necessary (transports)
+[PASS] J5a size law: W_C = (c1/c2)(rho-1)*D exactly -- D = -2*I*pi
+[PASS] J5b at C=I reduces to #057 law: W = (rho-1)*D, max|W|=|1-rho||D|
+[PASS] J5c complex ratio r*exp(I*theta): law carries the FULL ratio (angle too)
+[PASS] J6a holo-sector mirror: same identity holds (chirality-agnostic tool)
+[PASS] J6b shuffle guard: WRONG witness D_X-(c2/c1)D_Y does NOT vanish -- W_wrong = 2*I*pi*(-c1**2 + c2**2)/(c1*c2)
+========================================================================
+VERDICT: 13/13 clauses PASS
+Status target: [ESTABLISHED machine+judge] iff all PASS on Anthony's machine.
+exit_code=0
